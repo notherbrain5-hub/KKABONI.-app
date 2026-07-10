@@ -521,7 +521,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- DETAILS POPUP MODAL LOGIC ---
   const openVendorModal = (vendor) => {
     modalHeroImage.src = vendor.images[0] || 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
-    modalTitle.innerText = vendor.vendor_name;
+    
+    // AI 메달 시스템 (9점 이상 🥇, 7점 이상 🥈, 그 외 🥉)
+    const medal = vendor.safety_score >= 9 ? '🥇' : vendor.safety_score >= 7 ? '🥈' : '🥉';
+    modalTitle.innerText = `${medal} ${vendor.vendor_name}`;
     
     // Transparency Badge
     modalTransparencyBadge.className = `transparency-badge ${vendor.transparency_class}`;
@@ -649,6 +652,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       explanationHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
       modalCostExplanation.innerHTML = explanationHtml;
+    }
+
+    // AI Pros / Cons Bullet Points
+    const modalProsCons = document.querySelector('#modal-pros-cons ul');
+    if (modalProsCons) {
+      modalProsCons.innerHTML = '';
+      const pros = vendor.ai_analysis.pros.map(p => `<li style="margin-bottom: 8px;">🟢 <strong>장점:</strong> ${p}</li>`).join('');
+      const cons = vendor.ai_analysis.cons.map(c => `<li style="margin-bottom: 8px;">🔴 <strong>단점:</strong> ${c}</li>`).join('');
+      const notes = vendor.ai_analysis.notes.map(n => `<li>💡 <strong>특이사항:</strong> ${n}</li>`).join('');
+      modalProsCons.innerHTML = pros + cons + notes;
     }
 
     if (hiddenTotal > 0) {
