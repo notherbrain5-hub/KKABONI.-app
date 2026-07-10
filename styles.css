@@ -1025,9 +1025,10 @@ body {
   transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
 }
 .card-burned {
-  transform: scale(0.7) rotate(-5deg) !important;
-  filter: sepia(1) saturate(2) hue-rotate(-50deg) blur(5px) !important;
-  opacity: 0.1 !important;
+  transform: scale(0.5) rotate(-5deg) !important;
+  background-color: #EF4444 !important; /* bg-red-500 */
+  box-shadow: inset 0 0 50px rgba(220,38,38,0.8), 0 0 30px rgba(239,68,68,0.6) !important;
+  opacity: 0 !important;
   transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
   pointer-events: none;
 }
