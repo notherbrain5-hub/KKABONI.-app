@@ -274,7 +274,7 @@
         </div>
 
         <!-- Search Results -->
-        <div id="results-container" class="results-container hidden">
+        <div id="results-container" class="results-container">
           <div class="results-header">
             <h3>AI 정밀 견적 분석 결과</h3>
             <div class="sort-buttons">
@@ -533,25 +533,9 @@
 
     <!-- Toss-Style Details Dialog (Overhaul of vendor-modal) -->
     <div id="vendor-modal" class="modal-overlay hidden">
-      <div class="premium-details-modal">
+      <div class="premium-details-modal" style="display: flex; justify-content: center; align-items: center; height: 100%;">
         <button id="modal-close-btn" class="modal-close-btn">&times;</button>
-        
-        <!-- 1. 🥇 업체명 -->
-        <h3 id="modal-title" style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">🥇 업체명</h3>
-        
-        <!-- 2. AI 분석 장/단점 (텍스트 2줄) -->
-        <div id="modal-pros-cons" style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-          <ul style="list-style: none; padding: 0; margin: 0; font-size: 15px; line-height: 1.6; color: #334155;">
-            <!-- JS 렌더링 영역 -->
-          </ul>
-        </div>
-        
-        <!-- 3. 실제 예상 총액 : 00,000,000원 (진한 노란색 text-yellow-400) -->
-        <div style="margin-top: 30px; padding: 20px; background: #1E293B; border-radius: 12px; text-align: center;">
-          <div style="color: white; font-size: 14px; font-weight: 700; margin-bottom: 5px;">실제 예상 총액</div>
-          <div id="modal-final-total" style="color: #FACC15; font-size: 28px; font-weight: 900; text-shadow: 1px 1px 0px rgba(0,0,0,0.5);">0원</div>
-        </div>
-
+        <div id="modal-final-total" style="color: #FACC15; font-size: 32px; font-weight: 900;">실제 예상 총액 : 1,500만원</div>
       </div>
     </div>
 
