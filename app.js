@@ -452,15 +452,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const dummyHalls = [{ id: 1, name: '라온 컨벤션' }, { id: 2, name: '블랑 웨딩홀' }, { id: 3, name: '더 시그니처' }];
+
   const renderSearchResults = () => {
     resultsList.innerHTML = '';
-    state.searchResults.forEach(vendor => {
+    dummyHalls.map(hall => {
       const itemCard = document.createElement('div');
-      itemCard.style.cssText = "border: 1px solid #ccc; padding: 20px; margin-bottom: 10px; cursor: pointer; border-radius: 8px; font-weight: bold;";
-      itemCard.innerText = vendor.vendor_name;
+      itemCard.style.cssText = "border: 1px solid #ccc; padding: 20px; margin-bottom: 10px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 18px;";
+      itemCard.innerText = hall.name;
 
       itemCard.addEventListener('click', () => {
-        openVendorModal(vendor);
+        openVendorModal();
       });
 
       resultsList.appendChild(itemCard);
@@ -488,25 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- DETAILS POPUP MODAL LOGIC (HARD RESET) ---
-  const openVendorModal = (vendor) => {
-    const titleEl = document.getElementById('modal-title');
-    if (titleEl) titleEl.innerText = `🥇 ${vendor.vendor_name}`;
-
-    const prosConsEl = document.querySelector('#modal-pros-cons ul');
-    if (prosConsEl) {
-      prosConsEl.innerHTML = '';
-      if (vendor.ai_analysis && vendor.ai_analysis.pros && vendor.ai_analysis.cons) {
-        prosConsEl.innerHTML += `<li>장점: ${vendor.ai_analysis.pros.join(', ')}</li>`;
-        prosConsEl.innerHTML += `<li>단점: ${vendor.ai_analysis.cons.join(', ')}</li>`;
-      } else {
-        prosConsEl.innerHTML += `<li>장점: 분석 불가</li>`;
-        prosConsEl.innerHTML += `<li>단점: 분석 불가</li>`;
-      }
-    }
-
-    const totalEl = document.getElementById('modal-final-total');
-    if (totalEl) totalEl.innerText = `${vendor.total_price.toLocaleString()}원`;
-
+  const openVendorModal = () => {
     const vendorModal = document.getElementById('vendor-modal');
     if (vendorModal) {
       vendorModal.classList.remove('hidden');
@@ -1394,6 +1378,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Init App Sync
   syncAuthUI();
 
-  // Pre-fetch default data for Tab A so it's ready immediately
-  doSearch('seoul').catch(() => {});
+  // 강제 하드 리셋을 위한 정적 리스트 렌더링 호출
+  renderSearchResults();
 });
