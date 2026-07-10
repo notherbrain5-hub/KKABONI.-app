@@ -3,6 +3,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  let modalRadarChartInstance = null;
   // --- STATE SYSTEM ---
   let state = {
     isLoggedIn: false,
@@ -642,6 +643,60 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }, 100);
       };
+    }
+
+    // 6. Draw Radar Chart using Chart.js
+    const canvas = document.getElementById('modal-radar-chart');
+    if (canvas) {
+      if (modalRadarChartInstance) {
+        modalRadarChartInstance.destroy();
+      }
+      
+      const ctx = canvas.getContext('2d');
+      // Generate some dummy data based on vendor safety score to make it look full and dynamic
+      const baseScore = (vendor.safety_score || 8) * 10;
+      const dataValues = [
+        Math.min(100, baseScore + Math.floor(Math.random() * 15)), // 가격
+        Math.min(100, baseScore + Math.floor(Math.random() * 10 - 5)), // 교통
+        Math.min(100, baseScore + Math.floor(Math.random() * 20 - 10)), // 식사
+        Math.min(100, baseScore + Math.floor(Math.random() * 15 - 5)), // 시설
+        Math.min(100, baseScore + Math.floor(Math.random() * 10)) // 친절도
+      ];
+      
+      modalRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['가격', '교통', '식사', '시설', '친절도'],
+          datasets: [{
+            label: vendor.vendor_name,
+            data: dataValues,
+            backgroundColor: 'rgba(250, 204, 21, 0.4)', // text-yellow-400 with opacity
+            borderColor: '#FACC15',
+            pointBackgroundColor: '#D97706',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#D97706',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+              grid: { color: 'rgba(0, 0, 0, 0.1)' },
+              pointLabels: {
+                font: { size: 12, family: "'Noto Sans KR', sans-serif", weight: 'bold' },
+                color: '#475569'
+              },
+              ticks: { display: false, min: 0, max: 100 }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          },
+          maintainAspectRatio: false
+        }
+      });
     }
 
     const vendorModal = document.getElementById('vendor-modal');
