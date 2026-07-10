@@ -455,43 +455,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderSearchResults = () => {
     resultsList.innerHTML = '';
     state.searchResults.forEach(vendor => {
-      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
-      
       const itemCard = document.createElement('div');
-      itemCard.className = 'result-item-card';
-      
-      itemCard.innerHTML = `
-        <div class="item-left">
-          <img class="item-thumbnail" src="${vendor.images[0]}" alt="${vendor.vendor_name}">
-          <div class="item-info">
-            <h4 class="vendor-link">${vendor.vendor_name}</h4>
-            <div class="item-meta">
-              <span class="transparency-badge ${vendor.transparency_class}">${vendor.transparency_label} (${vendor.safety_score}점)</span>
-              <span>리뷰 ${vendor.reviews_count}개 기반</span>
-            </div>
-          </div>
-        </div>
-        <div class="item-right" style="display: flex; align-items: center; gap: 20px;">
-          <div class="item-price-wrap">
-            <div class="price-base" style="font-size: 12px; color: var(--text-secondary);">기본 패키지 ${formatCurrency(vendor.base_price)}</div>
-            <div style="font-size: 10px; color: var(--text-secondary); text-align: right; margin: -2px 0;">↓</div>
-            <div class="price-final" style="font-weight: 800; font-size: 16px; color: var(--accent-blue);">실제 예상 총액 ${formatCurrency(vendor.total_price)}</div>
-          </div>
-          <button class="btn-vs-add ${isSelected ? 'active' : ''}" data-id="${vendor.vendor_id}">
-            ${isSelected ? '담김' : '[ VS ]'}
-          </button>
-        </div>
-      `;
+      itemCard.style.cssText = "border: 1px solid #ccc; padding: 20px; margin-bottom: 10px; cursor: pointer; border-radius: 8px; font-weight: bold;";
+      itemCard.innerText = vendor.vendor_name;
 
-      // Event: Info open Modal
-      itemCard.querySelector('.vendor-link').addEventListener('click', () => openVendorModal(vendor));
-      itemCard.querySelector('.item-thumbnail').addEventListener('click', () => openVendorModal(vendor));
-
-      // Event: VS Basket Add
-      const vsBtn = itemCard.querySelector('.btn-vs-add');
-      vsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleVSBasket(vendor, vsBtn);
+      itemCard.addEventListener('click', () => {
+        openVendorModal(vendor);
       });
 
       resultsList.appendChild(itemCard);
@@ -518,207 +487,30 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVSCountBadge();
   };
 
-  // --- DETAILS POPUP MODAL LOGIC ---
+  // --- DETAILS POPUP MODAL LOGIC (HARD RESET) ---
   const openVendorModal = (vendor) => {
-    if (modalHeroImage) {
-      modalHeroImage.src = vendor.images[0] || 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
-    }
-    
-    // AI 메달 시스템 (9점 이상 🥇, 7점 이상 🥈, 그 외 🥉)
-    const medal = vendor.safety_score >= 9 ? '🥇' : vendor.safety_score >= 7 ? '🥈' : '🥉';
-    if (modalTitle) {
-      modalTitle.innerText = `${medal} ${vendor.vendor_name}`;
-    }
-    
-    // Transparency Badge
-    if (modalTransparencyBadge) {
-      modalTransparencyBadge.className = `transparency-badge ${vendor.transparency_class}`;
-      modalTransparencyBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
-    }
-    
-    if (modalReviewRating) modalReviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
-    if (modalReceiptTotal) modalReceiptTotal.innerText = formatCurrency(vendor.total_price);
-    
-    // VS Add Button state
-    if (modalBtnVs) {
-      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
-      modalBtnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
-      modalBtnVs.onclick = () => {
-        const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
-        toggleVSBasket(vendor, btn || document.createElement('button'));
-        modalBtnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
-      };
-    }
-    
-    if (modalBtnChoice) {
-      modalBtnChoice.onclick = () => {
-        selectFinalVendor(vendor);
-        vendorModal.classList.add('hidden');
-      };
-    }
-    
-    // 🔥 Killer Decision Button Logic (새로 추가된 하단 킬러 버튼)
-    const killerBtn = document.getElementById('modal-killer-decision-btn');
-    if (killerBtn) {
-      killerBtn.onclick = () => {
-        vendorModal.classList.add('hidden');
-        switchTab('tab-b');
-        
-        if (!state.vsBasket.some(v => v.vendor_id === vendor.vendor_id)) {
-          if (state.vsBasket.length >= 3) state.vsBasket.pop();
-          state.vsBasket.push(vendor);
-          updateVSCountBadge();
-          renderTabB();
-        }
-        
-        setTimeout(() => {
-          const targetCard = Array.from(activeSlotsContainer.querySelectorAll('.yugioh-card.filled'))
-                               .find(el => el.dataset.vendorId == vendor.vendor_id || el.querySelector('.yugioh-vendor-name').innerText === vendor.vendor_name);
-          if (targetCard) {
-            handleCardClick(targetCard, vendor);
-          } else {
-            selectFinalVendor(vendor);
-          }
-        }, 100);
-      };
-    }
-    
-    // Radar Chart
-    const modalRadarChart = document.getElementById('modal-radar-chart');
-    if (modalRadarChart) {
-      modalRadarChart.innerHTML = '';
-      const radarSvg = generateRadarChart(180, 180, [vendor.stats], ['#FACC15'], ['rgba(250, 204, 21, 0.25)']);
-      
-      const centerX = 90;
-      const centerY = 90;
-      const centerText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      centerText.setAttribute("x", centerX);
-      centerText.setAttribute("y", centerY);
-      centerText.setAttribute("text-anchor", "middle");
-      centerText.setAttribute("dominant-baseline", "middle");
-      centerText.setAttribute("fill", "#FACC15");
-      centerText.setAttribute("font-size", "22px");
-      centerText.setAttribute("font-weight", "900");
-      centerText.textContent = Math.round(vendor.safety_score * 10);
-      radarSvg.appendChild(centerText);
+    const titleEl = document.getElementById('modal-title');
+    if (titleEl) titleEl.innerText = `🥇 ${vendor.vendor_name}`;
 
-      modalRadarChart.appendChild(radarSvg);
-    }
-    
-    // Checklist
-    if (modalChecklist) {
-      modalChecklist.innerHTML = '';
-      const hasS = vendor.ai_analysis.features.some(f => f.includes('스튜디오') || f.includes('컨셉'));
-      const hasD = vendor.ai_analysis.features.some(f => f.includes('드레스') || f.includes('실크'));
-      const hasM = vendor.ai_analysis.features.some(f => f.includes('메이크업') || f.includes('디렉팅') || f.includes('상담'));
-      
-      modalChecklist.innerHTML += `
-        <div class="checklist-item ${hasS ? 'included' : 'excluded'}">${hasS ? '✓' : '✗'} 스튜디오 촬영 포함</div>
-        <div class="checklist-item ${hasD ? 'included' : 'excluded'}">${hasD ? '✓' : '✗'} 헬퍼 이모님 피팅 포함</div>
-        <div class="checklist-item ${hasM ? 'included' : 'excluded'}">${hasM ? '✓' : '✗'} 헤어 & 메이크업 포함</div>
-        <div class="checklist-item excluded">✗ 턱시도/대여복 미포함</div>
-      `;
-    }
-    
-    // Breakdown
-    if (modalBasePrice) modalBasePrice.innerText = formatCurrency(vendor.base_price);
-    if (modalReceiptItems) {
-      modalReceiptItems.innerHTML = '';
-      vendor.hidden_costs.forEach(cost => {
-        const row = document.createElement('div');
-        row.className = 'breakdown-row';
-        const mark = cost.is_mandatory ? '(필수)' : '(선택)';
-        row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
-        modalReceiptItems.appendChild(row);
-      });
-    }
-    if (modalFinalTotal) modalFinalTotal.innerText = formatCurrency(vendor.total_price);
-    
-    // Hidden Cost Progress
-    if (modalHiddenCostsProgress) {
-      modalHiddenCostsProgress.innerHTML = '';
-      vendor.hidden_costs.forEach(cost => {
-        const container = document.createElement('div');
-        container.className = 'progress-container';
-        const occurrence = cost.occurrence || Math.floor(Math.random() * 50) + 50;
-        container.innerHTML = `
-          <div class="progress-label-wrap">
-            <span>${cost.item_name}</span>
-            <span>발생률 ${occurrence}% (${formatCurrency(cost.average_cost)})</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" style="width: ${occurrence}%"></div>
-          </div>
-        `;
-        modalHiddenCostsProgress.appendChild(container);
-      });
-    }
-    
-    // AI Insight & [추가금 발생 사유] Alert Box
-    const hiddenTotal = vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0);
-    const modalCostExplanation = document.getElementById('modal-cost-explanation');
-    if (modalCostExplanation) {
-      let explanationHtml = `[업체 공식 기본가: ${formatCurrency(vendor.base_price)}] `;
-      if (hiddenTotal > 0) {
-        let reasons = vendor.hidden_costs.map(c => c.item_name).join(', ');
-        if (reasons.length > 15) reasons = reasons.substring(0, 15) + '...';
-        explanationHtml += `+ <span style="color:#B91C1C;">[숨겨진 추가금: ${reasons} 등 ${formatCurrency(hiddenTotal)}]</span>`;
+    const prosConsEl = document.querySelector('#modal-pros-cons ul');
+    if (prosConsEl) {
+      prosConsEl.innerHTML = '';
+      if (vendor.ai_analysis && vendor.ai_analysis.pros && vendor.ai_analysis.cons) {
+        prosConsEl.innerHTML += `<li>장점: ${vendor.ai_analysis.pros.join(', ')}</li>`;
+        prosConsEl.innerHTML += `<li>단점: ${vendor.ai_analysis.cons.join(', ')}</li>`;
       } else {
-        explanationHtml += `+ [숨겨진 추가금 없음]`;
+        prosConsEl.innerHTML += `<li>장점: 분석 불가</li>`;
+        prosConsEl.innerHTML += `<li>단점: 분석 불가</li>`;
       }
-      explanationHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
-      modalCostExplanation.innerHTML = explanationHtml;
     }
 
-    // AI Pros / Cons Bullet Points
-    const modalProsCons = document.querySelector('#modal-pros-cons ul');
-    if (modalProsCons) {
-      modalProsCons.innerHTML = '';
-      const pros = vendor.ai_analysis.pros.map(p => `<li style="margin-bottom: 8px;">🟢 <strong>장점:</strong> ${p}</li>`).join('');
-      const cons = vendor.ai_analysis.cons.map(c => `<li style="margin-bottom: 8px;">🔴 <strong>단점:</strong> ${c}</li>`).join('');
-      const notes = vendor.ai_analysis.notes.map(n => `<li>💡 <strong>특이사항:</strong> ${n}</li>`).join('');
-      modalProsCons.innerHTML = pros + cons + notes;
-    }
+    const totalEl = document.getElementById('modal-final-total');
+    if (totalEl) totalEl.innerText = `${vendor.total_price.toLocaleString()}원`;
 
-    if (hiddenTotal > 0) {
-      const topCost = vendor.hidden_costs.reduce((prev, current) => (prev.average_cost > current.average_cost) ? prev : current);
-      const reasonText = `이 업체는 기본 견적가 대비 총 ${formatCurrency(hiddenTotal)}의 추가 비용이 발생합니다. 주요 원인은 [${topCost.item_name}]의 필수 추가 옵션 유도 및 배송/진행 추가 경비입니다.`;
-      
-      if (modalInflationReason) modalInflationReason.innerText = `[가격 경고] ${reasonText}`;
-      if (modalWarningBox && modalWarningReason) {
-        modalWarningReason.innerText = reasonText;
-        modalWarningBox.style.display = 'block';
-      }
-    } else {
-      if (modalInflationReason) modalInflationReason.innerText = "이 업체는 숨겨진 추가금이 전혀 없거나 매우 낮은 수준의 아주 투명하고 정직한 견적의 업체입니다.";
-      if (modalWarningBox && modalWarningReason) {
-        modalWarningReason.innerText = "이 업체는 약관 위반 및 숨겨진 과도한 비용이 발견되지 않은 안심 투명 업체입니다.";
-        modalWarningBox.style.display = 'block';
-        modalWarningBox.style.background = '#ECFDF5';
-        modalWarningBox.style.borderColor = '#10B981';
-        modalWarningBox.querySelector('h5').style.color = '#065F46';
-        modalWarningBox.querySelector('h5').innerText = '✨ 안심 정찰제 업체 (추가금 발생 낮음)';
-        modalWarningReason.style.color = '#047857';
-      }
+    const vendorModal = document.getElementById('vendor-modal');
+    if (vendorModal) {
+      vendorModal.classList.remove('hidden');
     }
-    
-    // Review Tags
-    modalReviewTags.innerHTML = '';
-    const tags = ["#정찰제", "#인증완료", `#추가금_${Math.round(hiddenTotal/10000)}만원`, "#지출검증"];
-    if (hiddenTotal > 1000000) tags.push("#추가금주의");
-    else tags.push("#가성비좋음");
-    
-    tags.forEach(t => {
-      const span = document.createElement('span');
-      span.className = 'review-tag';
-      span.innerText = t;
-      modalReviewTags.appendChild(span);
-    });
-    
-    // AI Comment
-    modalAiComment.innerText = vendor.ai_analysis.notes.join("\n") + "\n\n실제 예비 부부들의 영수증 인증에 기반하여 분석된 가격 인사이트 정보입니다.";
-    
-    vendorModal.classList.remove('hidden');
   };
 
   modalCloseBtn.addEventListener('click', () => {
