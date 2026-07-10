@@ -1061,8 +1061,21 @@ body {
 
 .yugioh-card.empty-card {
   border: 3px dashed var(--glass-border);
-  box-shadow: none;
+  box-shadow: 0 0 15px rgba(255,255,255,0.05);
   background: var(--bg-input);
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 900;
+  color: #FBBF24;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  font-style: italic;
+  padding: 0 10px;
 }
 
 .yugioh-card-inner {
