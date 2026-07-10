@@ -17,8 +17,8 @@
 
   <div id="app" class="app-container">
     <header class="app-header">
-      <div class="logo" id="logo-btn" style="cursor: pointer;">
-        <span class="logo-kka" style="color: #FF4B4B; font-weight: 900; font-family: var(--font-sans);">KKA</span><span class="logo-boni" style="color: var(--text-primary); font-weight: 900; font-family: var(--font-sans);">BONI</span><span class="logo-accent">.</span>
+      <div class="logo-area" style="cursor: pointer;" id="logo-btn">
+        <span class="logo-text" style="font-size: 28px; font-weight: 900; letter-spacing: -1px; color: #000;">KKABONI</span>
       </div>
       <div class="header-right">
         <button id="header-vs-btn" class="nav-btn-gold" style="margin-right: 8px;">견적 까보기</button>
@@ -38,11 +38,13 @@
     <section id="landing-section" class="landing-section">
       <div class="hero-container" style="display: flex; align-items: center; justify-content: space-between; gap: 40px; width: 100%; max-width: 1000px; margin-bottom: 40px; flex-wrap: wrap;">
         <div class="hero-header" style="flex: 1.2; text-align: left; min-width: 320px; position: relative;">
-          <h2 style="font-size: 24px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: -1px;">결혼, 정말 서로 다 알고 하시는 건가요?</h2>
-          <h1 class="main-title" style="font-size: 64px; font-weight: 900; letter-spacing: -3px; color: #1E293B; margin-bottom: 20px; line-height: 1.15; background: linear-gradient(90deg, #FF4B4B 0%, #D97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">안 까보면,<br>모릅니다!</h1>
-          <p class="main-subtitle" style="font-size: 22px; font-weight: 800; max-width: 500px; line-height: 1.4; color: var(--text-primary); margin: 0 0 32px 0; display: inline-block; box-shadow: inset 0 -12px 0 rgba(255, 191, 36, 0.4);">계약 전에는 까보니!</p>
-          <br>
-          <button id="landing-start-btn" class="btn-primary" style="background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); border: none; padding: 16px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; box-shadow: 0 10px 25px rgba(217,119,6,0.3); color: #000; cursor: pointer; transition: transform 0.2s ease;">내 진짜 견적 까보기</button>
+          <div style="text-align: center; margin-bottom: 2rem;">
+          <p class="main-subtitle" style="font-size: 18px; font-weight: 500; color: #6B7280; margin: 0 0 8px 0;">안 까보면 모릅니다!</p>
+          <h1 class="main-title" style="font-size: 80px; font-weight: 900; letter-spacing: -3px; margin: 0 0 20px 0; line-height: 1.1;">
+            <span style="color: #DC2626;">까</span><span style="color: #000000;">보니</span>
+          </h1>
+          <button id="landing-start-btn" class="btn-primary" style="background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); border: none; padding: 16px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; box-shadow: 0 10px 25px rgba(217,119,6,0.3); color: #000; cursor: pointer; transition: transform 0.2s ease;">지금 당장 까보러 가기</button>
+        </div>
         </div>
         
         <div class="hero-image-wrap" style="flex: 1; position: relative; min-width: 320px;">
@@ -554,7 +556,10 @@
         </div>
         
         <!-- 영수증 팩트체크 -->
-        <div class="receipt-container" style="background: white; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div class="receipt-container" style="background: #FAFAFA; border: 2px dashed #94A3B8; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); position: relative;">
+          <!-- 영수증 톱니바퀴 장식 효과 -->
+          <div style="position: absolute; top: -5px; left: 0; right: 0; height: 10px; background-image: radial-gradient(#FAFAFA 50%, transparent 50%); background-size: 15px 15px; background-position: -7px -7px;"></div>
+          <div style="position: absolute; bottom: -5px; left: 0; right: 0; height: 10px; background-image: radial-gradient(#FAFAFA 50%, transparent 50%); background-size: 15px 15px; background-position: -7px -7px;"></div>
           <div class="receipt-header" style="border-bottom: 2px dashed #CBD5E1; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between;">
             <strong style="font-size: 16px; color: #0F172A;">KKABONI 영수증</strong>
             <span style="font-size: 12px; color: #64748B;">실제 결제 검증 내역</span>
@@ -597,7 +602,8 @@
 
   </div>
 
-  <script src="agents.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="src/crawlers/hallCrawler.js?v=8"></script>
+  <script src="src/crawlers/sdmCrawler.js?v=8"></script>
+  <script src="src/components/app.js?v=8"></script>
 </body>
 </html>
