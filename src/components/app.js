@@ -2,15 +2,8 @@
  * KKABONI Platform - Main Application Logic
  */
 
-import { fetchAndRenderWeddingHalls } from './Dashboard.js';
-import { Agent2, Agent3, Agent4, VENDOR_DB } from '../config/mockAgents.js';
-import { fetchHallData, parseHallHiddenCosts } from '../crawlers/hallCrawler.js';
-import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
-
-// InitApp removed to run in module scope immediately
-  // DB에서 데이터 렌더링
-  fetchAndRenderWeddingHalls();
-
+document.addEventListener('DOMContentLoaded', () => {
+  let modalRadarChartInstance = null;
   // --- STATE SYSTEM ---
   let state = {
     isLoggedIn: false,
@@ -132,8 +125,6 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
   const modalAiComment = document.getElementById('modal-ai-comment');
   const modalWarningBox = document.getElementById('modal-warning-box');
   const modalWarningReason = document.getElementById('modal-warning-reason');
-  const modalRadarChart = document.getElementById('modal-radar-chart');
-  const modalCostExplanation = document.getElementById('modal-cost-explanation');
 
   let currentGalleryIndex = 0;
   let currentGalleryImages = [];
@@ -400,10 +391,10 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     loadingText.innerText = "Agent 2: 지역 및 품목 데이터를 분석 중...";
 
     try {
-      const raw = await Agent2.fetchData(region, itemType, null); // budget limit은 Agent3 완료 후 적용
+      const raw = await window.Agent2.fetchData(region, itemType, null); // budget limit은 Agent3 완료 후 적용
       
       loadingText.innerText = "Agent 3: 추가 비용 요약 및 AI 신뢰성 연산 중...";
-      let analyzed = await Agent3.analyzeQuotes(raw);
+      let analyzed = await window.Agent3.analyzeQuotes(raw);
       
       if (budgetLimit && !isNaN(budgetLimit)) {
         analyzed = analyzed.filter(v => v.total_price <= budgetLimit);
@@ -459,11 +450,10 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
       sortBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       sortResults(btn.getAttribute('data-sort'));
-    });
-  });
-
   const renderSearchResults = () => {
     resultsList.innerHTML = '';
+    
+    // 진짜 상태(searchResults)를 사용하여 렌더링
     state.searchResults.forEach(vendor => {
       const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
       
@@ -472,7 +462,7 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
       
       itemCard.innerHTML = `
         <div class="item-left">
-          <img class="item-thumbnail" src="${vendor.images[0]}" alt="${vendor.vendor_name}">
+          <img class="item-thumbnail" src="${vendor.images && vendor.images[0] ? vendor.images[0] : 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60'}" alt="${vendor.vendor_name}">
           <div class="item-info">
             <h4 class="vendor-link">${vendor.vendor_name}</h4>
             <div class="item-meta">
@@ -493,11 +483,9 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
         </div>
       `;
 
-      // Event: Info open Modal
       itemCard.querySelector('.vendor-link').addEventListener('click', () => openVendorModal(vendor));
       itemCard.querySelector('.item-thumbnail').addEventListener('click', () => openVendorModal(vendor));
 
-      // Event: VS Basket Add
       const vsBtn = itemCard.querySelector('.btn-vs-add');
       vsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -528,43 +516,116 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     updateVSCountBadge();
   };
 
-  // --- DETAILS POPUP MODAL LOGIC ---
+  // --- DETAILS POPUP MODAL LOGIC (RESTORED SAFELY) ---
   const openVendorModal = (vendor) => {
-    modalHeroImage.src = vendor.images[0] || 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
-    modalTitle.innerText = vendor.vendor_name;
+    // 1. Hero Image & Badges
+    const heroImg = document.getElementById('modal-hero-image');
+    if (heroImg) heroImg.src = (vendor.images && vendor.images[0]) ? vendor.images[0] : 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
     
-    // Transparency Badge
-    modalTransparencyBadge.className = `transparency-badge ${vendor.transparency_class}`;
-    modalTransparencyBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
+    const transBadge = document.getElementById('modal-transparency-badge');
+    if (transBadge) {
+      transBadge.className = `transparency-badge ${vendor.transparency_class}`;
+      transBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
+    }
+
+    const reviewRating = document.getElementById('modal-review-rating');
+    if (reviewRating) reviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
+
+    // 2. Title & AI Pros/Cons
+    const titleEl = document.getElementById('modal-title');
+    const medal = vendor.safety_score >= 9 ? '🥇' : vendor.safety_score >= 7 ? '🥈' : '🥉';
+    if (titleEl) titleEl.innerText = `${medal} ${vendor.vendor_name}`;
+
+    const prosConsEl = document.querySelector('#modal-pros-cons ul');
+    if (prosConsEl) {
+      prosConsEl.innerHTML = '';
+      if (vendor.ai_analysis && vendor.ai_analysis.pros && vendor.ai_analysis.cons) {
+        const prosHtml = vendor.ai_analysis.pros.map(p => `<li style="margin-bottom: 8px;">🟢 <strong>장점:</strong> ${p}</li>`).join('');
+        const consHtml = vendor.ai_analysis.cons.map(c => `<li style="margin-bottom: 8px;">🔴 <strong>단점:</strong> ${c}</li>`).join('');
+        const notesHtml = (vendor.ai_analysis.notes || []).map(n => `<li>💡 <strong>특이사항:</strong> ${n}</li>`).join('');
+        prosConsEl.innerHTML = prosHtml + consHtml + notesHtml;
+      } else {
+        prosConsEl.innerHTML = `<li>장점: 데이터 없음</li><li>단점: 데이터 없음</li>`;
+      }
+    }
+
+    // 3. Receipt Breakdown
+    const basePriceEl = document.getElementById('modal-base-price');
+    if (basePriceEl) basePriceEl.innerText = formatCurrency(vendor.base_price);
     
-    modalReviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
-    modalReceiptTotal.innerText = formatCurrency(vendor.total_price);
-    
-    // VS Add Button state
-    const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
-    modalBtnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
-    modalBtnVs.onclick = () => {
-      const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
-      toggleVSBasket(vendor, btn || document.createElement('button'));
-      modalBtnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
-    };
-    
-    modalBtnChoice.onclick = () => {
-      selectFinalVendor(vendor);
-      vendorModal.classList.add('hidden');
-    };
-    
-    // 🔥 Killer Decision Button Logic (새로 추가된 하단 킬러 버튼)
+    const receiptItemsEl = document.getElementById('modal-receipt-items');
+    if (receiptItemsEl) {
+      receiptItemsEl.innerHTML = '';
+      if (vendor.hidden_costs) {
+        vendor.hidden_costs.forEach(cost => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #475569;';
+          const mark = cost.is_mandatory ? '(필수)' : '(선택)';
+          row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
+          receiptItemsEl.appendChild(row);
+        });
+      }
+    }
+
+    const totalEl = document.getElementById('modal-final-total');
+    if (totalEl) totalEl.innerText = formatCurrency(vendor.total_price);
+
+    const costExpEl = document.getElementById('modal-cost-explanation');
+    const hiddenTotal = vendor.hidden_costs ? vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0) : 0;
+    if (costExpEl) {
+      let expHtml = `[업체 공식 기본가: ${formatCurrency(vendor.base_price)}] `;
+      if (hiddenTotal > 0) {
+        let reasons = vendor.hidden_costs.map(c => c.item_name).join(', ');
+        if (reasons.length > 15) reasons = reasons.substring(0, 15) + '...';
+        expHtml += `+ <span style="color:#B91C1C;">[숨겨진 추가금: ${reasons} 등 ${formatCurrency(hiddenTotal)}]</span>`;
+      } else {
+        expHtml += `+ [숨겨진 추가금 없음]`;
+      }
+      expHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
+      costExpEl.innerHTML = expHtml;
+    }
+
+    // 4. Review Tags & AI Comment
+    const reviewTagsEl = document.getElementById('modal-review-tags');
+    if (reviewTagsEl) {
+      reviewTagsEl.innerHTML = '';
+      const tags = ["#정찰제", "#인증완료", `#추가금_${Math.round(hiddenTotal/10000)}만원`, "#지출검증"];
+      if (hiddenTotal > 1000000) tags.push("#추가금주의");
+      else tags.push("#가성비좋음");
+      
+      tags.forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'review-tag';
+        span.innerText = t;
+        reviewTagsEl.appendChild(span);
+      });
+    }
+
+    const aiCommentEl = document.getElementById('modal-ai-comment');
+    if (aiCommentEl) {
+      const notesText = (vendor.ai_analysis && vendor.ai_analysis.notes) ? vendor.ai_analysis.notes.join("\n") : '';
+      aiCommentEl.innerText = notesText + "\n\n실제 예비 부부들의 영수증 인증에 기반하여 분석된 가격 인사이트 정보입니다.";
+    }
+
+    // 5. Buttons Logic
+    const btnVs = document.getElementById('modal-btn-vs');
+    if (btnVs) {
+      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
+      btnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
+      btnVs.onclick = () => {
+        const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
+        toggleVSBasket(vendor, btn || document.createElement('button'));
+        btnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
+      };
+    }
+
     const killerBtn = document.getElementById('modal-killer-decision-btn');
     if (killerBtn) {
       killerBtn.onclick = () => {
-        // 1. 팝업 모달 즉시 닫기
-        vendorModal.classList.add('hidden');
-        
-        // 2. 맞짱 까보자 탭(Tab B)으로 화면 전환
+        const vendorModal = document.getElementById('vendor-modal');
+        if(vendorModal) vendorModal.classList.add('hidden');
         switchTab('tab-b');
         
-        // 3. 만약 3대장 슬롯에 없는 업체라면 임시로 넣어주기
         if (!state.vsBasket.some(v => v.vendor_id === vendor.vendor_id)) {
           if (state.vsBasket.length >= 3) state.vsBasket.pop();
           state.vsBasket.push(vendor);
@@ -572,131 +633,76 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
           renderTabB();
         }
         
-        // 4. DOM 업데이트 대기 후 킬러 애니메이션(handleCardClick) 강제 발동
         setTimeout(() => {
           const targetCard = Array.from(activeSlotsContainer.querySelectorAll('.yugioh-card.filled'))
-                               .find(el => el.dataset.vendorId == vendor.vendor_id);
+                               .find(el => el.dataset.vendorId == vendor.vendor_id || el.querySelector('.yugioh-vendor-name').innerText === vendor.vendor_name);
           if (targetCard) {
             handleCardClick(targetCard, vendor);
           } else {
-            // Fallback
             selectFinalVendor(vendor);
           }
         }, 100);
       };
     }
-    
-    // Checklist
-    modalChecklist.innerHTML = '';
-    const hasS = vendor.ai_analysis.features.some(f => f.includes('스튜디오') || f.includes('컨셉'));
-    const hasD = vendor.ai_analysis.features.some(f => f.includes('드레스') || f.includes('실크'));
-    const hasM = vendor.ai_analysis.features.some(f => f.includes('메이크업') || f.includes('디렉팅') || f.includes('상담'));
-    
-    modalChecklist.innerHTML += `
-      <div class="checklist-item ${hasS ? 'included' : 'excluded'}">${hasS ? '✓' : '✗'} 스튜디오 촬영 포함</div>
-      <div class="checklist-item ${hasD ? 'included' : 'excluded'}">${hasD ? '✓' : '✗'} 헬퍼 이모님 피팅 포함</div>
-      <div class="checklist-item ${hasM ? 'included' : 'excluded'}">${hasM ? '✓' : '✗'} 헤어 & 메이크업 포함</div>
-      <div class="checklist-item excluded">✗ 턱시도/대여복 미포함</div>
-    `;
-    
-    // Breakdown
-    modalBasePrice.innerText = formatCurrency(vendor.base_price);
-    modalReceiptItems.innerHTML = '';
-    
-    let hiddenCostNames = [];
-    vendor.hidden_costs.forEach(cost => {
-      const row = document.createElement('div');
-      row.className = 'breakdown-row receipt-row';
-      const mark = cost.is_mandatory ? '(필수)' : '(선택)';
-      row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
-      modalReceiptItems.appendChild(row);
-      hiddenCostNames.push(cost.item_name);
-    });
-    
-    modalFinalTotal.innerText = formatCurrency(vendor.total_price);
-    
-    // 추가금 해설표 렌더링
-    if (modalCostExplanation) {
-      const hiddenTotal = vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0);
-      let explanationHtml = `[업체 공식 기본가: ${formatCurrency(vendor.base_price)}] `;
-      if (hiddenTotal > 0) {
-        let reasons = hiddenCostNames.join(', ');
-        if (reasons.length > 15) reasons = reasons.substring(0, 15) + '...';
-        explanationHtml += `+ <span style="color:#B91C1C;">[숨겨진 추가금: ${reasons} 등 ${formatCurrency(hiddenTotal)}]</span>`;
-      } else {
-        explanationHtml += `+ [숨겨진 추가금 없음]`;
+
+    // 6. Draw Radar Chart using Chart.js
+    const canvas = document.getElementById('modal-radar-chart');
+    if (canvas) {
+      if (modalRadarChartInstance) {
+        modalRadarChartInstance.destroy();
       }
-      explanationHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
       
-      modalCostExplanation.innerHTML = explanationHtml;
-    }
-    
-    // Radar Chart 렌더링
-    if (modalRadarChart && vendor.stats) {
-      modalRadarChart.innerHTML = '';
-      const chartSVG = generateRadarSVG([vendor.stats], ["#FBBF24"], ["rgba(251, 191, 36, 0.3)"]);
-      modalRadarChart.appendChild(chartSVG);
-    }
-    
-    // Hidden Cost Progress
-    modalHiddenCostsProgress.innerHTML = '';
-    vendor.hidden_costs.forEach(cost => {
-      const container = document.createElement('div');
-      container.className = 'progress-container';
-      const occurrence = cost.occurrence || Math.floor(Math.random() * 50) + 50;
-      container.innerHTML = `
-        <div class="progress-label-wrap">
-          <span>${cost.item_name}</span>
-          <span>발생률 ${occurrence}% (${formatCurrency(cost.average_cost)})</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: ${occurrence}%"></div>
-        </div>
-      `;
-      modalHiddenCostsProgress.appendChild(container);
-    });
-    
-    // AI Insight & [추가금 발생 사유] Alert Box
-    const hiddenTotal = vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0);
-    if (hiddenTotal > 0) {
-      const topCost = vendor.hidden_costs.reduce((prev, current) => (prev.average_cost > current.average_cost) ? prev : current);
-      const reasonText = `이 업체는 기본 견적가 대비 총 ${formatCurrency(hiddenTotal)}의 추가 비용이 발생합니다. 주요 원인은 [${topCost.item_name}]의 필수 추가 옵션 유도 및 배송/진행 추가 경비입니다.`;
+      const ctx = canvas.getContext('2d');
+      // Generate some dummy data based on vendor safety score to make it look full and dynamic
+      const baseScore = (vendor.safety_score || 8) * 10;
+      const dataValues = [
+        Math.min(100, baseScore + Math.floor(Math.random() * 15)), // 가격
+        Math.min(100, baseScore + Math.floor(Math.random() * 10 - 5)), // 교통
+        Math.min(100, baseScore + Math.floor(Math.random() * 20 - 10)), // 식사
+        Math.min(100, baseScore + Math.floor(Math.random() * 15 - 5)), // 시설
+        Math.min(100, baseScore + Math.floor(Math.random() * 10)) // 친절도
+      ];
       
-      modalInflationReason.innerText = `[가격 경고] ${reasonText}`;
-      if (modalWarningBox && modalWarningReason) {
-        modalWarningReason.innerText = reasonText;
-        modalWarningBox.style.display = 'block';
-      }
-    } else {
-      modalInflationReason.innerText = "이 업체는 숨겨진 추가금이 전혀 없거나 매우 낮은 수준의 아주 투명하고 정직한 견적의 업체입니다.";
-      if (modalWarningBox && modalWarningReason) {
-        modalWarningReason.innerText = "이 업체는 약관 위반 및 숨겨진 과도한 비용이 발견되지 않은 안심 투명 업체입니다.";
-        modalWarningBox.style.display = 'block';
-        modalWarningBox.style.background = '#ECFDF5';
-        modalWarningBox.style.borderColor = '#10B981';
-        modalWarningBox.querySelector('h5').style.color = '#065F46';
-        modalWarningBox.querySelector('h5').innerText = '✨ 안심 정찰제 업체 (추가금 발생 낮음)';
-        modalWarningReason.style.color = '#047857';
-      }
+      modalRadarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['가격', '교통', '식사', '시설', '친절도'],
+          datasets: [{
+            label: vendor.vendor_name,
+            data: dataValues,
+            backgroundColor: 'rgba(250, 204, 21, 0.4)', // text-yellow-400 with opacity
+            borderColor: '#FACC15',
+            pointBackgroundColor: '#D97706',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#D97706',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+              grid: { color: 'rgba(0, 0, 0, 0.1)' },
+              pointLabels: {
+                font: { size: 12, family: "'Noto Sans KR', sans-serif", weight: 'bold' },
+                color: '#475569'
+              },
+              ticks: { display: false, min: 0, max: 100 }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          },
+          maintainAspectRatio: false
+        }
+      });
     }
-    
-    // Review Tags
-    modalReviewTags.innerHTML = '';
-    const tags = ["#정찰제", "#인증완료", `#추가금_${Math.round(hiddenTotal/10000)}만원`, "#지출검증"];
-    if (hiddenTotal > 1000000) tags.push("#추가금주의");
-    else tags.push("#가성비좋음");
-    
-    tags.forEach(t => {
-      const span = document.createElement('span');
-      span.className = 'review-tag';
-      span.innerText = t;
-      modalReviewTags.appendChild(span);
-    });
-    
-    // AI Comment
-    modalAiComment.innerText = vendor.ai_analysis.notes.join("\n") + "\n\n실제 예비 부부들의 영수증 인증에 기반하여 분석된 가격 인사이트 정보입니다.";
-    
-    vendorModal.classList.remove('hidden');
+
+    const vendorModal = document.getElementById('vendor-modal');
+    if (vendorModal) {
+      vendorModal.classList.remove('hidden');
+    }
   };
 
   modalCloseBtn.addEventListener('click', () => {
@@ -853,13 +859,11 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     
     // FIFA / Pokemon Style Card Render Logic
     activeSlotsContainer.innerHTML = '';
-    const slotElements = [];
     
     state.vsBasket.forEach((v, i) => {
       const slotDiv = document.createElement('div');
       slotDiv.className = `yugioh-card filled ${v.transparency_class}`;
       slotDiv.style.backgroundImage = `url('${v.images[0]}')`;
-      slotDiv.dataset.vendorId = v.vendor_id; // 애니메이션 탐색용 ID 추가
       
       slotDiv.innerHTML = `
         <div class="yugioh-card-inner" style="height: 100%; display: flex; flex-direction: column;">
@@ -918,11 +922,10 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
 
       radarWrap.appendChild(radarSvg);
 
-      // Card Selection Click Handler (모달창 오픈으로만 역할 제한)
+      // Card Selection Click Handler
       slotDiv.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-slot-btn')) return;
-        // 카드 본체 클릭 시 모달창 오픈 (디테일 뷰)
-        openVendorModal(v);
+        handleCardClick(slotDiv, v);
       });
       
       slotDiv.querySelector('.remove-slot-btn').addEventListener('click', (e) => {
@@ -937,12 +940,25 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
         renderTabB();
       });
       
-      slotElements.push(slotDiv);
+      if (i > 0) {
+        const vsDivider = document.createElement('div');
+        vsDivider.className = 'vs-divider';
+        vsDivider.innerText = 'VS';
+        activeSlotsContainer.appendChild(vsDivider);
+      }
+      activeSlotsContainer.appendChild(slotDiv);
     });
     
     // Fill remaining empty slots up to 3
     const emptyCount = 3 - state.vsBasket.length;
     for (let i = 0; i < emptyCount; i++) {
+      if (state.vsBasket.length + i > 0) {
+        const vsDivider = document.createElement('div');
+        vsDivider.className = 'vs-divider';
+        vsDivider.innerText = 'VS';
+        activeSlotsContainer.appendChild(vsDivider);
+      }
+      
       const emptyDiv = document.createElement('div');
       emptyDiv.className = 'yugioh-card empty-card';
       emptyDiv.innerHTML = `
@@ -952,19 +968,8 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
           <p style="font-size:12px; color:var(--text-secondary); text-align:center; margin-top:10px;">'견적 까보자!' 탭에서 업체를 담아주세요.</p>
         </div>
       `;
-      slotElements.push(emptyDiv);
+      activeSlotsContainer.appendChild(emptyDiv);
     }
-    
-    // 최종 렌더링 (슬롯과 VS 마크 교차 배치)
-    slotElements.forEach((el, index) => {
-      activeSlotsContainer.appendChild(el);
-      if (index < slotElements.length - 1) {
-        const vsMark = document.createElement('div');
-        vsMark.className = 'vs-divider';
-        vsMark.innerHTML = 'VS';
-        activeSlotsContainer.appendChild(vsMark);
-      }
-    });
 
     // AI Advice Panel Trigger (Only when all 3 slots are filled)
     if (state.vsBasket.length === 3) {
@@ -1010,24 +1015,16 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     // Disable interactions
     activeSlotsContainer.style.pointerEvents = 'none';
 
-    // 1. Burn Out (나머지) & Scale Up Golden Aura (선택된 카드)
-    const allCards = activeSlotsContainer.querySelectorAll('.yugioh-card.filled');
+    // Before animation, cache original positions for translation calculation
+    const allCards = Array.from(activeSlotsContainer.querySelectorAll('.yugioh-card.filled'));
+    allCards.forEach(c => {
+      const rect = c.getBoundingClientRect();
+      c.dataset.origX = rect.left + rect.width / 2;
+      c.dataset.origY = rect.top + rect.height / 2;
+    });
+
     allCards.forEach(c => {
       if (c === cardEl) {
-        // 화면 정중앙 좌표 계산
-        const rect = c.getBoundingClientRect();
-        const viewportCenterX = window.innerWidth / 2;
-        const viewportCenterY = window.innerHeight / 2;
-        const cardCenterX = rect.left + rect.width / 2;
-        const cardCenterY = rect.top + rect.height / 2;
-        
-        // 장바구니 궤적용 원래 좌표 저장
-        c.dataset.origX = cardCenterX;
-        c.dataset.origY = cardCenterY;
-        
-        // CSS 변수 주입 및 애니메이션 클래스 추가
-        c.style.setProperty('--center-x', `${viewportCenterX - cardCenterX}px`);
-        c.style.setProperty('--center-y', `${viewportCenterY - cardCenterY}px`);
         c.classList.add('card-chosen');
       } else {
         c.classList.add('card-burned');
@@ -1073,7 +1070,11 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     state.chosenVendor = vendor;
     localStorage.setItem('kkaboni_chosen_vendor', JSON.stringify(vendor));
     showToast(`👑 ${vendor.vendor_name} 최종 결정 완료! 결혼 가보자!`);
-    switchTab('tab-d');
+    
+    // Switch to tab D
+    setTimeout(() => {
+      switchTab('tab-d');
+    }, 1000);
   };
 
   // --- TAB C: 후기 까보자! LOGIC ---
@@ -1291,7 +1292,7 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
         result = { status: "Verified", ai_clean_score: 100, reason: "더미 패스 통과" };
         window._dummyReviewPass = false;
       } else {
-        result = await Agent4.analyzeReview(content, vendorName, imageFile);
+        result = await window.Agent4.analyzeReview(content, vendorName, imageFile);
       }
       
       if (result.status === "Verified") {
@@ -1319,7 +1320,7 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
             renderTabCList();
             
             // C -> A realtime update logic
-            const targetVendorObj = VENDOR_DB.find(v => v.vendor_name === vendorName);
+            const targetVendorObj = window.VENDOR_DB.find(v => v.vendor_name === vendorName);
             if (targetVendorObj) {
                // Update DB score artificially to show real-time effect
                if (targetVendorObj.fixed_score) {
@@ -1587,3 +1588,4 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
 
   // Pre-fetch default data for Tab A so it's ready immediately
   doSearch('seoul').catch(() => {});
+});
