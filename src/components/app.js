@@ -860,6 +860,7 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
               <div>💡 <strong>특이사항:</strong> ${v.ai_analysis.notes[0] || '추가 지출 안전성 높음'}</div>
             </div>
           </div>
+          <button class="select-vendor-btn" style="width: 100%; padding: 12px; border-radius: 10px; font-weight:900; font-size:14px; border: none; background: linear-gradient(135deg, #FACC15 0%, #D97706 100%); color: #000; cursor: pointer; margin-bottom: 6px; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);">이 업체로 결정!</button>
           <button class="btn-secondary remove-slot-btn" style="width: 100%; padding: 8px; border-radius: 10px; font-weight:700; font-size:12px; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer;" data-idx="${i}">슬롯 비우기</button>
         </div>
       `;
@@ -887,7 +888,12 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
       // Card Selection Click Handler
       slotDiv.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-slot-btn')) return;
-        handleCardClick(slotDiv, v);
+        if (e.target.classList.contains('select-vendor-btn')) {
+          handleCardClick(slotDiv, v);
+          return;
+        }
+        // 카드 본체 클릭 시 모달창 오픈 (디테일 뷰)
+        openVendorModal(v);
       });
       
       slotDiv.querySelector('.remove-slot-btn').addEventListener('click', (e) => {
@@ -963,9 +969,24 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     // Disable interactions
     activeSlotsContainer.style.pointerEvents = 'none';
 
+    // 1. Burn Out (나머지) & Scale Up Golden Aura (선택된 카드)
     const allCards = activeSlotsContainer.querySelectorAll('.yugioh-card.filled');
     allCards.forEach(c => {
       if (c === cardEl) {
+        // 화면 정중앙 좌표 계산
+        const rect = c.getBoundingClientRect();
+        const viewportCenterX = window.innerWidth / 2;
+        const viewportCenterY = window.innerHeight / 2;
+        const cardCenterX = rect.left + rect.width / 2;
+        const cardCenterY = rect.top + rect.height / 2;
+        
+        // 장바구니 궤적용 원래 좌표 저장
+        c.dataset.origX = cardCenterX;
+        c.dataset.origY = cardCenterY;
+        
+        // CSS 변수 주입 및 애니메이션 클래스 추가
+        c.style.setProperty('--center-x', `${viewportCenterX - cardCenterX}px`);
+        c.style.setProperty('--center-y', `${viewportCenterY - cardCenterY}px`);
         c.classList.add('card-chosen');
       } else {
         c.classList.add('card-burned');
@@ -978,10 +999,32 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
        aiAdviceWrap.style.transition = 'opacity 0.5s';
     }
 
-    // Wait for animation (approx 1.5s)
+    // 2. 1.5초 대기 후 장바구니(Tab D)로 스르륵 빨려 들어가기 (Suck Into Tab)
     setTimeout(() => {
-      activeSlotsContainer.style.pointerEvents = 'auto';
-      selectFinalVendor(vendor);
+      const tabDBtn = document.querySelector('.nav-btn[data-tab="tab-d"]');
+      if (tabDBtn) {
+        const tabRect = tabDBtn.getBoundingClientRect();
+        const tabCenterX = tabRect.left + tabRect.width / 2;
+        const tabCenterY = tabRect.top + tabRect.height / 2;
+        
+        const origX = parseFloat(cardEl.dataset.origX);
+        const origY = parseFloat(cardEl.dataset.origY);
+        
+        // CSS target 변수 주입
+        cardEl.style.setProperty('--target-x', `${tabCenterX - origX}px`);
+        cardEl.style.setProperty('--target-y', `${tabCenterY - origY}px`);
+        
+        // 애니메이션 체인지
+        cardEl.classList.remove('card-chosen');
+        cardEl.classList.add('card-suck');
+      }
+      
+      // 3. Suck 애니메이션(0.8s) 종료 후 탭 전환 및 데이터 최종 결정
+      setTimeout(() => {
+        activeSlotsContainer.style.pointerEvents = 'auto';
+        selectFinalVendor(vendor);
+      }, 800);
+      
     }, 1500);
   };
 
@@ -989,11 +1032,7 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     state.chosenVendor = vendor;
     localStorage.setItem('kkaboni_chosen_vendor', JSON.stringify(vendor));
     showToast(`👑 ${vendor.vendor_name} 최종 결정 완료! 결혼 가보자!`);
-    
-    // Switch to tab D
-    setTimeout(() => {
-      switchTab('tab-d');
-    }, 1000);
+    switchTab('tab-d');
   };
 
   // --- TAB C: 후기 까보자! LOGIC ---
