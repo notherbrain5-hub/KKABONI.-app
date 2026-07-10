@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,16 +9,24 @@
   <link rel="stylesheet" href="styles.css?v=8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <!-- Toast Notification -->
   <div id="toast" class="toast hidden">저장되었습니다</div>
 
   <div id="app" class="app-container">
     <header class="app-header">
       <div class="logo" id="logo-btn" style="cursor: pointer;">
-        <span class="logo-kka" style="color: #FF4B4B; font-weight: 900; font-family: var(--font-sans);">KKA</span><span class="logo-boni" style="color: var(--text-primary); font-weight: 900; font-family: var(--font-sans);">BONI</span><span class="logo-accent">.</span>
+        <span class="logo-kka" style="color: #FF4B4B; font-weight: 900; font-family: var(--font-sans);">KKA</span><span
+          class="logo-boni"
+          style="color: var(--text-primary); font-weight: 900; font-family: var(--font-sans);">BONI</span><span
+          class="logo-accent">.</span>
       </div>
       <div class="header-right">
         <button id="header-vs-btn" class="nav-btn-gold" style="margin-right: 8px;">견적 까보기</button>
@@ -26,42 +35,69 @@
         <!-- Tab Navigation (Hidden by default, shown after login) -->
         <nav id="main-nav" class="main-nav hidden">
           <button class="nav-btn active" data-tab="tab-a">[견적 까보자!]</button>
-          <button class="nav-btn" data-tab="tab-b">[맞짱 까보자! 🥊] <span id="vs-count-badge" class="badge hidden">0</span></button>
+          <button class="nav-btn" data-tab="tab-b">[맞짱 까보자!🥊] <span id="vs-count-badge"
+              class="badge hidden">0</span></button>
           <button class="nav-btn" data-tab="tab-c">[후기 까보자!]</button>
-          <button class="nav-btn" data-tab="tab-d">[결혼 가보자! 💰]</button>
+          <button class="nav-btn" data-tab="tab-d">[결혼 가보자!💰]</button>
         </nav>
       </div>
     </header>
 
     <!-- Main Landing Section (Visible before login, or as home) -->
     <section id="landing-section" class="landing-section">
-      <div class="hero-container" style="display: flex; align-items: center; justify-content: space-between; gap: 40px; width: 100%; max-width: 1000px; margin-bottom: 40px; flex-wrap: wrap;">
+      <div class="hero-container"
+        style="display: flex; align-items: center; justify-content: space-between; gap: 40px; width: 100%; max-width: 1000px; margin-bottom: 40px; flex-wrap: wrap;">
         <div class="hero-header" style="flex: 1.2; text-align: left; min-width: 320px; position: relative;">
-          <h2 style="font-size: 24px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: -1px;">결혼, 정말 서로 다 알고 하시는 건가요?</h2>
-          <h1 class="main-title" style="font-size: 64px; font-weight: 900; letter-spacing: -3px; color: #1E293B; margin-bottom: 20px; line-height: 1.15; background: linear-gradient(90deg, #FF4B4B 0%, #D97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">안 까보면,<br>모릅니다!</h1>
-          <p class="main-subtitle" style="font-size: 22px; font-weight: 800; max-width: 500px; line-height: 1.4; color: var(--text-primary); margin: 0 0 32px 0; display: inline-block; box-shadow: inset 0 -12px 0 rgba(255, 191, 36, 0.4);">계약 전에는 까보니!</p>
+          <h2
+            style="font-size: 24px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: -1px;">
+            결혼, 정말 서로 다 알고 하시는 건가요?</h2>
+          <h1 class="main-title"
+            style="font-size: 64px; font-weight: 900; letter-spacing: -3px; color: #1E293B; margin-bottom: 20px; line-height: 1.15; background: linear-gradient(90deg, #FF4B4B 0%, #D97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            안 까보면,<br>모릅니다!</h1>
+          <p class="main-subtitle"
+            style="font-size: 22px; font-weight: 800; max-width: 500px; line-height: 1.4; color: var(--text-primary); margin: 0 0 32px 0; display: inline-block; box-shadow: inset 0 -12px 0 rgba(255, 191, 36, 0.4);">
+            계약 전에는 까보니!</p>
           <br>
-          <button id="landing-start-btn" class="btn-primary" style="background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); border: none; padding: 16px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; box-shadow: 0 10px 25px rgba(217,119,6,0.3); color: #000; cursor: pointer; transition: transform 0.2s ease;">내 진짜 견적 까보기</button>
+          <button id="landing-start-btn" class="btn-primary"
+            style="background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); border: none; padding: 16px 40px; font-size: 18px; font-weight: 900; border-radius: 30px; box-shadow: 0 10px 25px rgba(217,119,6,0.3); color: #000; cursor: pointer; transition: transform 0.2s ease;">내
+            진짜 견적 까보기</button>
         </div>
-        
+
         <div class="hero-image-wrap" style="flex: 1; position: relative; min-width: 320px;">
           <!-- Floating Hologram Cards -->
-          <div class="hologram-card" style="position: absolute; top: -20px; right: -20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.4); z-index: 10; animation: float 4s ease-in-out infinite;">
+          <div class="hologram-card"
+            style="position: absolute; top: -20px; right: -20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.4); z-index: 10; animation: float 4s ease-in-out infinite;">
             <div style="font-size: 11px; font-weight: 800; color: #FF4B4B; margin-bottom: 2px;">[스드메] 150만 원?</div>
             <div style="font-size: 14px; font-weight: 900; color: #1E293B;">실제 결제 280만 원!</div>
           </div>
-          <div class="hologram-card" style="position: absolute; bottom: 80px; left: -30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.4); z-index: 10; animation: float 5s ease-in-out infinite 1s;">
+          <div class="hologram-card"
+            style="position: absolute; bottom: 80px; left: -30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.4); z-index: 10; animation: float 5s ease-in-out infinite 1s;">
             <div style="font-size: 11px; font-weight: 800; color: #FF4B4B; margin-bottom: 2px;">[웨딩홀] 대관료 무료?</div>
             <div style="font-size: 14px; font-weight: 900; color: #1E293B;">식대 추가금 1500만 원!</div>
           </div>
 
-          <img src="couple_tablet_wedding.png" alt="젊은 커플이 태블릿을 보며 안도하는 모습" style="width: 100%; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 2px solid #E2E8F0;">
-          <div class="hero-image-overlay" style="position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--glass-border); width: 85%;">
-            <div style="font-weight: 900; font-size: 15px; color: #1E293B; margin-bottom: 4px; letter-spacing: -0.5px;">KKABONI 상세 견적 분석</div>
-            <div style="font-size: 12px; color: #475569; display: flex; align-items: center; gap: 4px; font-weight: 700;">
+          <img src="couple_tablet_wedding.png" alt="젊은 커플이 태블릿을 보며 안도하는 모습"
+            style="width: 100%; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 2px solid #E2E8F0;">
+          <div class="hero-image-overlay"
+            style="position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--glass-border); width: 85%;">
+            <div style="font-weight: 900; font-size: 15px; color: #1E293B; margin-bottom: 4px; letter-spacing: -0.5px;">
+              KKABONI 상세 견적 분석</div>
+            <div
+              style="font-size: 12px; color: #475569; display: flex; align-items: center; gap: 4px; font-weight: 700;">
               <span style="color: #10B981; font-weight:900;">✓</span> 실제 평균 추가금 검증 통과
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Supabase DB Test Container -->
+      <div id="supabase-test-container"
+        style="max-width: 1000px; width: 100%; margin: 0 auto 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;">
+        <h3 style="font-size: 18px; font-weight: 800; color: #1E293B; margin-bottom: 12px;">📊 Supabase 실시간 웨딩홀 데이터</h3>
+        <div id="wedding-hall-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Data will be injected here via app.js -->
+          <div style="padding: 10px; background: #F8FAFC; border-radius: 8px; color: #64748B; font-size: 14px;">데이터 로딩 중
+            또는 URL/키가 설정되지 않았습니다...</div>
         </div>
       </div>
 
@@ -98,61 +134,87 @@
       </div>
 
       <!-- Price Transparency Guide Action -->
-      <div class="guide-card" style="margin: 60px 0 20px 0; text-align: center; background: none; border: none; box-shadow: none;">
-        <button id="guide-modal-btn" class="btn-secondary" style="background: #1E293B; color: #FFF; padding: 16px 36px; font-size: 18px; font-weight: 900; border-radius: 30px; border: none; box-shadow: 0 15px 30px rgba(30,41,59,0.25); cursor: pointer; transition: transform 0.2s ease;">🚨 눈탱이 가이드</button>
+      <div class="guide-card"
+        style="margin: 60px 0 20px 0; text-align: center; background: none; border: none; box-shadow: none;">
+        <button id="guide-modal-btn" class="btn-secondary"
+          style="background: #1E293B; color: #FFF; padding: 16px 36px; font-size: 18px; font-weight: 900; border-radius: 30px; border: none; box-shadow: 0 15px 30px rgba(30,41,59,0.25); cursor: pointer; transition: transform 0.2s ease;">🚨
+          눈탱이 가이드</button>
       </div>
 
       <!-- Premium Corporate Footer -->
-      <footer style="width: 100%; border-top: 1px solid var(--glass-border); padding: 40px 0 20px 0; margin-top: 40px; text-align: center; color: var(--text-secondary); font-size: 13px;">
+      <footer
+        style="width: 100%; border-top: 1px solid var(--glass-border); padding: 40px 0 20px 0; margin-top: 40px; text-align: center; color: var(--text-secondary); font-size: 13px;">
         <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">
           <span style="font-size: 24px;">🛡️</span>
           <strong style="color: var(--text-primary); font-size: 15px; font-weight: 800;">KKABONI 신뢰 검증 센터</strong>
         </div>
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-          <span style="background: var(--bg-card); padding: 6px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--glass-border); font-size: 12px; color: var(--text-primary);">✓ 공정거래위원회 표준약관 준수</span>
-          <span style="background: var(--bg-card); padding: 6px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--glass-border); font-size: 12px; color: var(--text-primary);">✓ 24시간 실시간 AI Vision 검증</span>
+          <span
+            style="background: var(--bg-card); padding: 6px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--glass-border); font-size: 12px; color: var(--text-primary);">✓
+            공정거래위원회 표준약관 준수</span>
+          <span
+            style="background: var(--bg-card); padding: 6px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--glass-border); font-size: 12px; color: var(--text-primary);">✓
+            24시간 실시간 AI Vision 검증</span>
         </div>
         <div style="color: #94A3B8; font-size: 11px;">&copy; 2026 KKABONI Co. All Rights Reserved.</div>
       </footer>
     </section>
 
     <!-- 눈탱이 가이드 Modal -->
-    <div id="guide-modal" class="modal-overlay hidden" style="z-index: 2000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-      <div class="guide-modal-content" style="background: var(--bg-card); border-radius: 24px; width: 90%; max-width: 450px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+    <div id="guide-modal" class="modal-overlay hidden"
+      style="z-index: 2000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+      <div class="guide-modal-content"
+        style="background: var(--bg-card); border-radius: 24px; width: 90%; max-width: 450px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
         <!-- Header -->
         <div style="padding: 30px 24px; background: #FF4B4B; color: white; text-align: center; position: relative;">
-          <button id="guide-modal-close" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; transition: transform 0.2s ease;">&times;</button>
-          <h3 style="font-size: 24px; font-weight: 900; letter-spacing: -1.5px; line-height: 1.35;">평생에서 축복받는 날에<br>눈탱이.. 맞으실건가요??</h3>
+          <button id="guide-modal-close"
+            style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; transition: transform 0.2s ease;">&times;</button>
+          <h3 style="font-size: 24px; font-weight: 900; letter-spacing: -1.5px; line-height: 1.35;">평생에서 축복받는
+            날에<br>눈탱이.. 맞으실건가요??</h3>
         </div>
         <!-- Body -->
         <div style="padding: 24px; overflow-y: auto; flex: 1; background: #F8FAFC;">
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px;">
-            <li style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+            <li
+              style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
               <span style="font-size: 28px;">🤖</span>
               <div>
-                <strong style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">AI 진짜 가격 예측</strong>
-                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">기본가에 속지 마세요. 과거 수만 건의 데이터로 업체의 숨겨진 평균 추가금을 정확히 예측합니다.</span>
+                <strong
+                  style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">AI 진짜
+                  가격 예측</strong>
+                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">기본가에 속지 마세요. 과거 수만
+                  건의 데이터로 업체의 숨겨진 평균 추가금을 정확히 예측합니다.</span>
               </div>
             </li>
-            <li style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+            <li
+              style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
               <span style="font-size: 28px;">🧾</span>
               <div>
-                <strong style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">영수증 팩트 체크</strong>
-                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">광고성 리뷰 0%. 오직 실제 계약서와 결제 영수증 인증을 통과한 유저만의 생생한 평가를 제공합니다.</span>
+                <strong
+                  style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">영수증 팩트
+                  체크</strong>
+                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">광고성 리뷰 0%. 오직 실제
+                  계약서와 결제 영수증 인증을 통과한 유저만의 생생한 평가를 제공합니다.</span>
               </div>
             </li>
-            <li style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+            <li
+              style="background: white; padding: 16px; border-radius: 16px; border: 1px solid #E2E8F0; display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
               <span style="font-size: 28px;">🥊</span>
               <div>
-                <strong style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">1:1 맞짱 비교</strong>
-                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">원하는 업체들을 카드 형태로 띄워놓고 가성비, 리스크 점수, 추가금 내역을 한눈에 배틀 비교하세요.</span>
+                <strong
+                  style="display: block; color: #1E293B; font-size: 16px; margin-bottom: 6px; font-weight: 800;">1:1 맞짱
+                  비교</strong>
+                <span style="font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;">원하는 업체들을 카드 형태로
+                  띄워놓고 가성비, 리스크 점수, 추가금 내역을 한눈에 배틀 비교하세요.</span>
               </div>
             </li>
           </ul>
         </div>
         <!-- Footer -->
         <div style="padding: 24px; background: white; border-top: 1px solid #E2E8F0; text-align: center;">
-          <button id="guide-action-btn" style="width: 100%; background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); color: #000; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(217,119,6,0.3); transition: transform 0.2s ease;">🛡️ 눈탱이 지키러가기</button>
+          <button id="guide-action-btn"
+            style="width: 100%; background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%); color: #000; border: none; padding: 18px; border-radius: 16px; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(217,119,6,0.3); transition: transform 0.2s ease;">🛡️
+            눈탱이 지키러가기</button>
         </div>
       </div>
     </div>
@@ -164,7 +226,8 @@
         <p>1초 회원가입 후 투명한 웨딩 견적을 확인하세요.</p>
       </div>
       <form id="auth-form" class="auth-form">
-        <div style="background: rgba(49, 130, 246, 0.05); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 13px; color: var(--text-secondary); text-align: center; border: 1px dashed var(--accent-blue);">
+        <div
+          style="background: rgba(49, 130, 246, 0.05); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 13px; color: var(--text-secondary); text-align: center; border: 1px dashed var(--accent-blue);">
           <span style="display:block; margin-bottom: 4px; font-weight:700;">💡 테스트 계정 정보</span>
           <strong style="color: var(--accent-blue);">test@kkaboni.com / 1234</strong>
         </div>
@@ -181,13 +244,16 @@
           <button type="submit" class="btn-primary btn-login-large">로그인</button>
           <button type="button" id="open-signup-btn" class="btn-secondary" style="width: 100%;">회원가입</button>
         </div>
-        <button type="button" id="test-account-btn" class="btn-secondary" style="width: 100%; margin-top: 15px; background:#E2E8F0;">🛠️ 테스트 계정 자동 입력</button>
+        <button type="button" id="test-account-btn" class="btn-secondary"
+          style="width: 100%; margin-top: 15px; background:#E2E8F0;">🛠️ 테스트 계정 자동 입력</button>
       </form>
     </div>
 
     <!-- Signup Modal -->
-    <div id="signup-modal" class="modal-overlay hidden" style="z-index: 1000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
-      <div class="signup-modal-content" style="background: var(--bg-card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid var(--glass-border); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <div id="signup-modal" class="modal-overlay hidden"
+      style="z-index: 1000; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+      <div class="signup-modal-content"
+        style="background: var(--bg-card); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; border: 1px solid var(--glass-border); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
         <h3 style="margin-bottom: 15px; font-weight:800;">회원가입</h3>
         <p style="font-size:13px; color:var(--text-secondary); margin-bottom: 20px; line-height:1.4;">
           직접 가입을 원하시나요? 아무 정보나 입력 후 [가입완료]를 누르시면 됩니다.<br>
@@ -215,7 +281,7 @@
     </div>
 
     <main id="app-main" class="app-main hidden">
-      
+
       <!-- ================= TAB A: 견적 까보자! ================= -->
       <section id="tab-a-section" class="tab-content active">
         <div class="section-title-wrap">
@@ -303,12 +369,14 @@
             <div class="vs-vs-text" style="font-weight:800; color:var(--text-secondary);">VS</div>
             <div class="vs-slot" style="background:var(--bg-input); padding: 20px; border-radius:12px;">비교할 업체 2</div>
           </div>
-          <p class="help-text" style="color:var(--text-secondary); margin-top: 15px;">'AI 견적 분석' 탭에서 원하는 업체의 [ VS ] 버튼을 클릭해 담아주세요.</p>
+          <p class="help-text" style="color:var(--text-secondary); margin-top: 15px;">'AI 견적 분석' 탭에서 원하는 업체의 [ VS ] 버튼을
+            클릭해 담아주세요.</p>
         </div>
 
         <!-- Comparison Matrix (Reverted to Yu-Gi-Oh Cards) -->
         <div id="comparison-filled" class="comparison-filled hidden">
-          <div class="vs-slot-container flex-slots" id="active-slots-container" style="gap: 20px; align-items: stretch;">
+          <div class="vs-slot-container flex-slots" id="active-slots-container"
+            style="gap: 20px; align-items: stretch;">
             <!-- Rendered via JS -->
           </div>
 
@@ -335,7 +403,7 @@
                 <div class="auth-overlay-content" id="auth-overlay-content">
                   <!-- State 1: Start Button -->
                   <button type="button" id="start-auth-btn" class="btn-yellow-huge">AI 인증 및 후기 까발리기</button>
-                  
+
                   <!-- State 2: Verification Choices -->
                   <div id="auth-choices" class="hidden auth-choices-wrap">
                     <button type="button" id="btn-real-receipt" class="btn-auth-choice real">📸 실제 영수증 등록!</button>
@@ -344,10 +412,10 @@
                   </div>
 
                   <input type="file" id="review-image" accept="image/*" class="hidden-file-input">
-                  
+
                   <div id="auth-loading" class="hidden" style="margin-top: 20px;">
-                     <div class="spinner"></div>
-                     <p style="font-weight: 700; color: #FBBF24;">AI 매칭 영수증 판독 중...</p>
+                    <div class="spinner"></div>
+                    <p style="font-weight: 700; color: #FBBF24;">AI 매칭 영수증 판독 중...</p>
                   </div>
                   <div id="auth-result-msg" class="hidden auth-result-msg"></div>
                 </div>
@@ -359,11 +427,12 @@
                     <label for="review-vendor-name">업체명</label>
                     <input type="text" id="review-vendor-name" placeholder="방문/계약하신 업체명을 정확히 써주세요" required>
                   </div>
-                  
+
                   <div class="form-group" style="margin-bottom:12px;">
                     <label>별점 평가</label>
                     <div class="star-rating-input">
-                      <input type="radio" id="star5" name="rating" value="5" required /><label for="star5" title="5점">★</label>
+                      <input type="radio" id="star5" name="rating" value="5" required /><label for="star5"
+                        title="5점">★</label>
                       <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4점">★</label>
                       <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3점">★</label>
                       <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2점">★</label>
@@ -373,7 +442,9 @@
 
                   <div class="form-group" style="margin-bottom:16px;">
                     <label for="review-content">후기 상세 내용</label>
-                    <textarea id="review-content" rows="5" maxlength="500" placeholder="결제금액, 계약날짜 등 구체적인 수치(예: 300만원)와 상세 디테일(이모님 이름, 액자갈이 30만원 추가금 등)을 포함해 주세요." required></textarea>
+                    <textarea id="review-content" rows="5" maxlength="500"
+                      placeholder="결제금액, 계약날짜 등 구체적인 수치(예: 300만원)와 상세 디테일(이모님 이름, 액자갈이 30만원 추가금 등)을 포함해 주세요."
+                      required></textarea>
                     <div class="char-counter"><span id="char-count">0</span> / 500</div>
                   </div>
 
@@ -424,7 +495,7 @@
           <div class="budget-calculator-card">
             <!-- Final Chosen Vendor Card Slot -->
             <div id="tab-d-chosen-card-container" style="margin-bottom: 24px;"></div>
-            
+
             <h3 style="margin-bottom: 20px; font-weight:800; font-size:18px;">품목별 예산 구성</h3>
             <div class="budget-calculator-grid">
               <div class="form-group">
@@ -494,8 +565,9 @@
                 </select>
               </div>
             </div>
-            
-            <div style="background:rgba(49, 130, 246, 0.05); padding:15px; border-radius:12px; font-size:12px; line-height:1.4; color:var(--text-secondary);">
+
+            <div
+              style="background:rgba(49, 130, 246, 0.05); padding:15px; border-radius:12px; font-size:12px; line-height:1.4; color:var(--text-secondary);">
               ℹ️ 예산 계산 결과에는 업계 통계 기반 각 품목별 <strong>평균 숨겨진 추가금(약 15%~30%)</strong>이 자동으로 가산되어 실제 지출 예상액으로 분석됩니다.
             </div>
           </div>
@@ -512,8 +584,10 @@
 
             <div class="notebook-section" style="margin-top:20px;">
               <h4>📝 마이 웨딩 플랜 노트</h4>
-              <div class="notebook-paper" style="background:#FFF; border:1px solid var(--glass-border); box-shadow:none;">
-                <textarea id="plan-notes" rows="8" placeholder="이곳에 예산 배분 아이디어, 추가금 방지 노하우, 마음에 둔 업체 목록을 메모해보세요."></textarea>
+              <div class="notebook-paper"
+                style="background:#FFF; border:1px solid var(--glass-border); box-shadow:none;">
+                <textarea id="plan-notes" rows="8"
+                  placeholder="이곳에 예산 배분 아이디어, 추가금 방지 노하우, 마음에 둔 업체 목록을 메모해보세요."></textarea>
               </div>
               <div class="save-action-wrap">
                 <button id="save-plan-btn" class="btn-primary" style="padding:10px 20px;">노트 저장하기</button>
@@ -525,8 +599,8 @@
         <!-- Traditional Planner empty fallback wrapper (To keep code structure compatible) -->
         <div id="chosen-empty" class="hidden"></div>
         <div id="chosen-filled" class="hidden">
-           <div id="chosen-left-col-container" class="hidden"></div>
-           <button id="go-to-a-btn" class="hidden"></button>
+          <div id="chosen-left-col-container" class="hidden"></div>
+          <button id="go-to-a-btn" class="hidden"></button>
         </div>
       </section>
     </main>
@@ -535,7 +609,7 @@
     <div id="vendor-modal" class="modal-overlay hidden">
       <div class="premium-details-modal">
         <button id="modal-close-btn" class="modal-close-btn">&times;</button>
-        
+
         <!-- 1. Hero Area -->
         <div class="modal-hero">
           <img id="modal-hero-image" src="" alt="업체 이미지">
@@ -547,19 +621,23 @@
             </div>
             <div class="modal-hero-price" id="modal-receipt-total">0원</div>
           </div>
-          
+
           <div style="display:flex; justify-content:center; gap:10px; margin-top:16px;">
             <button id="modal-btn-vs" class="btn-primary" style="padding:8px 16px; font-size:13px;">비교함에 담기</button>
-            <button id="modal-btn-choice" class="btn-secondary" style="padding:8px 16px; font-size:13px; background:var(--accent-navy); color:white;">최종 결정 파트너</button>
+            <button id="modal-btn-choice" class="btn-secondary"
+              style="padding:8px 16px; font-size:13px; background:var(--accent-navy); color:white;">최종 결정 파트너</button>
           </div>
         </div>
 
         <!-- [추가금 발생 사유] Alert Box -->
-        <div id="modal-warning-box" style="margin: 20px 0; background: #FEF2F2; border: 2px dashed #EF4444; border-radius: 12px; padding: 15px;">
-          <h5 style="color: #B91C1C; font-size: 14px; font-weight: 850; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+        <div id="modal-warning-box"
+          style="margin: 20px 0; background: #FEF2F2; border: 2px dashed #EF4444; border-radius: 12px; padding: 15px;">
+          <h5
+            style="color: #B91C1C; font-size: 14px; font-weight: 850; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
             ⚠️ 이 가격이 왜 이렇게 부풀려졌을까요? (추가금 발생 사유)
           </h5>
-          <p id="modal-warning-reason" style="color: #991B1B; font-size: 13px; font-weight: 800; line-height: 1.5; margin: 0;"></p>
+          <p id="modal-warning-reason"
+            style="color: #991B1B; font-size: 13px; font-weight: 800; line-height: 1.5; margin: 0;"></p>
         </div>
 
         <!-- 2. Package Information -->
@@ -602,7 +680,8 @@
         <div class="review-tag-wrap" id="modal-review-tags">
           <!-- Tags injected here -->
         </div>
-        <div id="modal-ai-comment" style="font-size:13px; line-height:1.6; color:var(--text-secondary); white-space:pre-wrap;">
+        <div id="modal-ai-comment"
+          style="font-size:13px; line-height:1.6; color:var(--text-secondary); white-space:pre-wrap;">
           후기 피드백...
         </div>
       </div>
@@ -613,4 +692,5 @@
   <script src="agents.js?v=8"></script>
   <script src="app.js?v=8"></script>
 </body>
+
 </html>
