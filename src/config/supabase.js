@@ -1,19 +1,13 @@
-// src/config/supabase.js
-// Supabase 초기화 및 연결 로직 담당
+// Supabase DB 연결 전용 (이외의 로직 포함 금지)
+// 스키마: wedding_halls (id, name, base_price, hidden_cost, created_at)
 
-const SUPABASE_URL = 'https://cijtcujmjdmliretmrkk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpanRjdWptamRtbGlyZXRtcmtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NDc2ODksImV4cCI6MjA5OTIyMzY4OX0.g0eJYH-OoSwQNk2qbFeSwsdeSFaSZrM_2loKZTIXVjg';
+export const supabaseConfig = {
+  url: "https://your-project-id.supabase.co",
+  key: "your-anon-key"
+};
 
-let supabaseClient = null;
-
-if (window.supabase) {
-  try {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch(e) {
-    console.error("Supabase 초기화 실패: 키가 유효하지 않습니다.", e);
-  }
-} else {
-  console.error("Supabase 라이브러리를 찾을 수 없습니다. index.html에 CDN이 추가되었는지 확인하세요.");
-}
-
-export { supabaseClient, SUPABASE_URL };
+// 실제 DB 연동 시 아래 주석 해제 및 Supabase JS SDK 활용
+/*
+import { createClient } from '@supabase/supabase-js';
+export const supabase = createClient(supabaseConfig.url, supabaseConfig.key);
+*/
