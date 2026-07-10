@@ -536,107 +536,22 @@
       <div class="premium-details-modal">
         <button id="modal-close-btn" class="modal-close-btn">&times;</button>
         
-        <!-- 1. Hero Area -->
-        <div class="modal-hero">
-          <img id="modal-hero-image" src="" alt="업체 이미지">
-          <div class="modal-hero-title-wrap">
-            <h3 id="modal-title">업체명</h3>
-            <div class="modal-hero-meta">
-              <span id="modal-transparency-badge" class="transparency-badge">등급</span>
-              <span id="modal-review-rating" style="color:#FBBF24; font-weight:700;">★ 4.8</span>
-            </div>
-            <div class="modal-hero-price" id="modal-receipt-total">0원</div>
-          </div>
-          
-          <div style="display:flex; justify-content:center; gap:10px; margin-top:16px;">
-            <button id="modal-btn-vs" class="btn-primary" style="padding:8px 16px; font-size:13px;">비교함에 담기</button>
-            <button id="modal-btn-choice" class="btn-secondary" style="padding:8px 16px; font-size:13px; background:var(--accent-navy); color:white;">최종 결정 파트너</button>
-          </div>
-        </div>
-
-        <!-- Radar Chart Container -->
-        </div>
-
-        <!-- Radar Chart Container -->
-        <h4 class="modal-section-title" style="margin-top:20px;">📊 AI 다면 평가 스탯</h4>
-        <div id="modal-radar-chart" style="display: flex; justify-content: center; background: #0F172A; padding: 20px; border-radius: 16px; margin-bottom: 20px;">
-          <!-- SVG Radar Chart gets injected here -->
-        </div>
-
-        <!-- Pros / Cons Bullet Points -->
-        <h4 class="modal-section-title" style="margin-top:20px;">📌 AI 분석 장단점 요약</h4>
+        <!-- 1. 🥇 업체명 -->
+        <h3 id="modal-title" style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">🥇 업체명</h3>
+        
+        <!-- 2. AI 분석 장/단점 (텍스트 2줄) -->
         <div id="modal-pros-cons" style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-          <ul style="list-style: none; padding: 0; margin: 0; font-size: 13.5px; line-height: 1.6; color: #334155;">
-            <!-- Pros/Cons get injected here -->
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 15px; line-height: 1.6; color: #334155;">
+            <!-- JS 렌더링 영역 -->
           </ul>
         </div>
-
-        <!-- [추가금 발생 사유] Alert Box -->
-        <div id="modal-warning-box" style="margin: 20px 0; background: #FEF2F2; border: 2px dashed #EF4444; border-radius: 12px; padding: 15px;">
-          <h5 style="color: #B91C1C; font-size: 14px; font-weight: 850; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            ⚠️ 이 가격이 왜 이렇게 부풀려졌을까요? (추가금 발생 사유)
-          </h5>
-          <p id="modal-warning-reason" style="color: #991B1B; font-size: 13px; font-weight: 800; line-height: 1.5; margin: 0;"></p>
+        
+        <!-- 3. 실제 예상 총액 : 00,000,000원 (진한 노란색 text-yellow-400) -->
+        <div style="margin-top: 30px; padding: 20px; background: #1E293B; border-radius: 12px; text-align: center;">
+          <div style="color: white; font-size: 14px; font-weight: 700; margin-bottom: 5px;">실제 예상 총액</div>
+          <div id="modal-final-total" style="color: #FACC15; font-size: 28px; font-weight: 900; text-shadow: 1px 1px 0px rgba(0,0,0,0.5);">0원</div>
         </div>
 
-        <!-- 2. Package Information -->
-        <h4 class="modal-section-title">📦 구성품 포함 여부</h4>
-        <div class="checklist-grid" id="modal-checklist">
-          <!-- Included/Excluded details generated dynamically -->
-        </div>
-
-        <!-- 3. Real Payment Breakdown (Receipt Style Card) -->
-        <h4 class="modal-section-title">🧾 예상 결제 지출 상세</h4>
-        <div class="breakdown-card receipt-style">
-          <div class="receipt-header">
-            <strong>KKABONI 영수증</strong>
-            <span>실제 결제 검증 내역</span>
-          </div>
-          <div class="breakdown-row receipt-row">
-            <span>기본 패키지 가격</span>
-            <span id="modal-base-price">0원</span>
-          </div>
-          <div id="modal-receipt-items">
-            <!-- Hidden costs items injected here -->
-          </div>
-          <div class="breakdown-row total receipt-total" style="flex-direction: column; align-items: stretch; margin-top: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 12px 16px; border-radius: 8px;">
-              <span style="color: white; font-size: 16px; font-weight: 700;">실제 예상 총액</span>
-              <span id="modal-final-total" style="color: #FACC15; font-size: 24px; font-weight: 900; text-shadow: 1px 1px 0px rgba(0,0,0,0.5);">0원</span>
-            </div>
-            <!-- 추가금 해설표 -->
-            <div id="modal-cost-explanation" style="margin-top: 12px; padding: 12px; background: #FEFCE8; border: 1px solid #FEF08A; border-radius: 8px; font-size: 12.5px; color: #854D0E; font-weight: 700; line-height: 1.5;">
-              <!-- 렌더링 예시: [업체 공식 기본가] + [숨겨진 추가금: 00만원] = [실제 예상 총액] -->
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. Hidden Cost Analysis -->
-        <h4 class="modal-section-title">📊 항목별 추가 지출 발생 빈도</h4>
-        <div id="modal-hidden-costs-progress">
-          <!-- Progress bars injected here -->
-        </div>
-
-        <!-- 5. AI Insight Card -->
-        <h4 class="modal-section-title">💡 AI 가격 인사이트</h4>
-        <div class="ai-insight-card">
-          <span class="ai-insight-icon">🔍</span>
-          <span class="ai-insight-text" id="modal-inflation-reason">로딩 중...</span>
-        </div>
-
-        <!-- 6. Review Summary -->
-        <h4 class="modal-section-title">💬 고객 지출 검증 코멘트</h4>
-        <div class="review-tag-wrap" id="modal-review-tags">
-          <!-- Tags injected here -->
-        </div>
-        <div id="modal-ai-comment" style="font-size:13px; line-height:1.6; color:var(--text-secondary); white-space:pre-wrap;">
-          후기 피드백...
-        </div>
-
-        <!-- Killer Animation Trigger Button -->
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #E2E8F0;">
-          <button id="modal-killer-decision-btn" class="select-vendor-btn" style="width: 100%; padding: 16px; border-radius: 12px; font-weight:900; font-size:16px; border: none; background: linear-gradient(135deg, #FACC15 0%, #D97706 100%); color: #000; cursor: pointer; box-shadow: 0 8px 20px rgba(217, 119, 6, 0.4); text-shadow: 0 1px 0 rgba(255,255,255,0.5);">🔥 이 업체로 최종 결정! (결혼 가보자)</button>
-        </div>
       </div>
     </div>
 
