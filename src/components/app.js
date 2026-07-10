@@ -132,6 +132,8 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
   const modalAiComment = document.getElementById('modal-ai-comment');
   const modalWarningBox = document.getElementById('modal-warning-box');
   const modalWarningReason = document.getElementById('modal-warning-reason');
+  const modalRadarChart = document.getElementById('modal-radar-chart');
+  const modalCostExplanation = document.getElementById('modal-cost-explanation');
 
   let currentGalleryIndex = 0;
   let currentGalleryImages = [];
@@ -568,14 +570,41 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     // Breakdown
     modalBasePrice.innerText = formatCurrency(vendor.base_price);
     modalReceiptItems.innerHTML = '';
+    
+    let hiddenCostNames = [];
     vendor.hidden_costs.forEach(cost => {
       const row = document.createElement('div');
-      row.className = 'breakdown-row';
+      row.className = 'breakdown-row receipt-row';
       const mark = cost.is_mandatory ? '(필수)' : '(선택)';
       row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
       modalReceiptItems.appendChild(row);
+      hiddenCostNames.push(cost.item_name);
     });
+    
     modalFinalTotal.innerText = formatCurrency(vendor.total_price);
+    
+    // 추가금 해설표 렌더링
+    if (modalCostExplanation) {
+      const hiddenTotal = vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0);
+      let explanationHtml = `[업체 공식 기본가: ${formatCurrency(vendor.base_price)}] `;
+      if (hiddenTotal > 0) {
+        let reasons = hiddenCostNames.join(', ');
+        if (reasons.length > 15) reasons = reasons.substring(0, 15) + '...';
+        explanationHtml += `+ <span style="color:#B91C1C;">[숨겨진 추가금: ${reasons} 등 ${formatCurrency(hiddenTotal)}]</span>`;
+      } else {
+        explanationHtml += `+ [숨겨진 추가금 없음]`;
+      }
+      explanationHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
+      
+      modalCostExplanation.innerHTML = explanationHtml;
+    }
+    
+    // Radar Chart 렌더링
+    if (modalRadarChart && vendor.stats) {
+      modalRadarChart.innerHTML = '';
+      const chartSVG = generateRadarSVG([vendor.stats], ["#FBBF24"], ["rgba(251, 191, 36, 0.3)"]);
+      modalRadarChart.appendChild(chartSVG);
+    }
     
     // Hidden Cost Progress
     modalHiddenCostsProgress.innerHTML = '';
