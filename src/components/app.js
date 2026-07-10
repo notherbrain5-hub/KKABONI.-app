@@ -7,7 +7,7 @@ import { Agent2, Agent3, Agent4, VENDOR_DB } from '../config/mockAgents.js';
 import { fetchHallData, parseHallHiddenCosts } from '../crawlers/hallCrawler.js';
 import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+// InitApp removed to run in module scope immediately
   // DB에서 데이터 렌더링
   fetchAndRenderWeddingHalls();
 
@@ -1478,4 +1478,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Pre-fetch default data for Tab A so it's ready immediately
   doSearch('seoul').catch(() => {});
-});
