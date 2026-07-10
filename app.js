@@ -449,20 +449,46 @@ document.addEventListener('DOMContentLoaded', () => {
       sortBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       sortResults(btn.getAttribute('data-sort'));
-    });
-  });
-
-  const dummyHalls = [{ id: 1, name: '라온 컨벤션' }, { id: 2, name: '블랑 웨딩홀' }, { id: 3, name: '더 시그니처' }];
-
   const renderSearchResults = () => {
     resultsList.innerHTML = '';
-    dummyHalls.map(hall => {
+    
+    // 진짜 상태(searchResults)를 사용하여 렌더링
+    state.searchResults.forEach(vendor => {
+      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
+      
       const itemCard = document.createElement('div');
-      itemCard.style.cssText = "border: 1px solid #ccc; padding: 20px; margin-bottom: 10px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 18px;";
-      itemCard.innerText = hall.name;
+      itemCard.className = 'result-item-card';
+      
+      itemCard.innerHTML = `
+        <div class="item-left">
+          <img class="item-thumbnail" src="${vendor.images && vendor.images[0] ? vendor.images[0] : 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60'}" alt="${vendor.vendor_name}">
+          <div class="item-info">
+            <h4 class="vendor-link">${vendor.vendor_name}</h4>
+            <div class="item-meta">
+              <span class="transparency-badge ${vendor.transparency_class}">${vendor.transparency_label} (${vendor.safety_score}점)</span>
+              <span>리뷰 ${vendor.reviews_count}개 기반</span>
+            </div>
+          </div>
+        </div>
+        <div class="item-right" style="display: flex; align-items: center; gap: 20px;">
+          <div class="item-price-wrap">
+            <div class="price-base" style="font-size: 12px; color: var(--text-secondary);">기본 패키지 ${formatCurrency(vendor.base_price)}</div>
+            <div style="font-size: 10px; color: var(--text-secondary); text-align: right; margin: -2px 0;">↓</div>
+            <div class="price-final" style="font-weight: 800; font-size: 16px; color: var(--accent-blue);">실제 예상 총액 ${formatCurrency(vendor.total_price)}</div>
+          </div>
+          <button class="btn-vs-add ${isSelected ? 'active' : ''}" data-id="${vendor.vendor_id}">
+            ${isSelected ? '담김' : '[ VS ]'}
+          </button>
+        </div>
+      `;
 
-      itemCard.addEventListener('click', () => {
-        openVendorModal();
+      itemCard.querySelector('.vendor-link').addEventListener('click', () => openVendorModal(vendor));
+      itemCard.querySelector('.item-thumbnail').addEventListener('click', () => openVendorModal(vendor));
+
+      const vsBtn = itemCard.querySelector('.btn-vs-add');
+      vsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleVSBasket(vendor, vsBtn);
       });
 
       resultsList.appendChild(itemCard);
@@ -489,8 +515,135 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVSCountBadge();
   };
 
-  // --- DETAILS POPUP MODAL LOGIC (HARD RESET) ---
-  const openVendorModal = () => {
+  // --- DETAILS POPUP MODAL LOGIC (RESTORED SAFELY) ---
+  const openVendorModal = (vendor) => {
+    // 1. Hero Image & Badges
+    const heroImg = document.getElementById('modal-hero-image');
+    if (heroImg) heroImg.src = (vendor.images && vendor.images[0]) ? vendor.images[0] : 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
+    
+    const transBadge = document.getElementById('modal-transparency-badge');
+    if (transBadge) {
+      transBadge.className = `transparency-badge ${vendor.transparency_class}`;
+      transBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
+    }
+
+    const reviewRating = document.getElementById('modal-review-rating');
+    if (reviewRating) reviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
+
+    // 2. Title & AI Pros/Cons
+    const titleEl = document.getElementById('modal-title');
+    const medal = vendor.safety_score >= 9 ? '🥇' : vendor.safety_score >= 7 ? '🥈' : '🥉';
+    if (titleEl) titleEl.innerText = `${medal} ${vendor.vendor_name}`;
+
+    const prosConsEl = document.querySelector('#modal-pros-cons ul');
+    if (prosConsEl) {
+      prosConsEl.innerHTML = '';
+      if (vendor.ai_analysis && vendor.ai_analysis.pros && vendor.ai_analysis.cons) {
+        const prosHtml = vendor.ai_analysis.pros.map(p => `<li style="margin-bottom: 8px;">🟢 <strong>장점:</strong> ${p}</li>`).join('');
+        const consHtml = vendor.ai_analysis.cons.map(c => `<li style="margin-bottom: 8px;">🔴 <strong>단점:</strong> ${c}</li>`).join('');
+        const notesHtml = (vendor.ai_analysis.notes || []).map(n => `<li>💡 <strong>특이사항:</strong> ${n}</li>`).join('');
+        prosConsEl.innerHTML = prosHtml + consHtml + notesHtml;
+      } else {
+        prosConsEl.innerHTML = `<li>장점: 데이터 없음</li><li>단점: 데이터 없음</li>`;
+      }
+    }
+
+    // 3. Receipt Breakdown
+    const basePriceEl = document.getElementById('modal-base-price');
+    if (basePriceEl) basePriceEl.innerText = formatCurrency(vendor.base_price);
+    
+    const receiptItemsEl = document.getElementById('modal-receipt-items');
+    if (receiptItemsEl) {
+      receiptItemsEl.innerHTML = '';
+      if (vendor.hidden_costs) {
+        vendor.hidden_costs.forEach(cost => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: #475569;';
+          const mark = cost.is_mandatory ? '(필수)' : '(선택)';
+          row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
+          receiptItemsEl.appendChild(row);
+        });
+      }
+    }
+
+    const totalEl = document.getElementById('modal-final-total');
+    if (totalEl) totalEl.innerText = formatCurrency(vendor.total_price);
+
+    const costExpEl = document.getElementById('modal-cost-explanation');
+    const hiddenTotal = vendor.hidden_costs ? vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0) : 0;
+    if (costExpEl) {
+      let expHtml = `[업체 공식 기본가: ${formatCurrency(vendor.base_price)}] `;
+      if (hiddenTotal > 0) {
+        let reasons = vendor.hidden_costs.map(c => c.item_name).join(', ');
+        if (reasons.length > 15) reasons = reasons.substring(0, 15) + '...';
+        expHtml += `+ <span style="color:#B91C1C;">[숨겨진 추가금: ${reasons} 등 ${formatCurrency(hiddenTotal)}]</span>`;
+      } else {
+        expHtml += `+ [숨겨진 추가금 없음]`;
+      }
+      expHtml += ` = <span style="color:#1E293B; font-weight:900;">[실제 예상 총액: ${formatCurrency(vendor.total_price)}]</span>`;
+      costExpEl.innerHTML = expHtml;
+    }
+
+    // 4. Review Tags & AI Comment
+    const reviewTagsEl = document.getElementById('modal-review-tags');
+    if (reviewTagsEl) {
+      reviewTagsEl.innerHTML = '';
+      const tags = ["#정찰제", "#인증완료", `#추가금_${Math.round(hiddenTotal/10000)}만원`, "#지출검증"];
+      if (hiddenTotal > 1000000) tags.push("#추가금주의");
+      else tags.push("#가성비좋음");
+      
+      tags.forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'review-tag';
+        span.innerText = t;
+        reviewTagsEl.appendChild(span);
+      });
+    }
+
+    const aiCommentEl = document.getElementById('modal-ai-comment');
+    if (aiCommentEl) {
+      const notesText = (vendor.ai_analysis && vendor.ai_analysis.notes) ? vendor.ai_analysis.notes.join("\n") : '';
+      aiCommentEl.innerText = notesText + "\n\n실제 예비 부부들의 영수증 인증에 기반하여 분석된 가격 인사이트 정보입니다.";
+    }
+
+    // 5. Buttons Logic
+    const btnVs = document.getElementById('modal-btn-vs');
+    if (btnVs) {
+      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
+      btnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
+      btnVs.onclick = () => {
+        const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
+        toggleVSBasket(vendor, btn || document.createElement('button'));
+        btnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
+      };
+    }
+
+    const killerBtn = document.getElementById('modal-killer-decision-btn');
+    if (killerBtn) {
+      killerBtn.onclick = () => {
+        const vendorModal = document.getElementById('vendor-modal');
+        if(vendorModal) vendorModal.classList.add('hidden');
+        switchTab('tab-b');
+        
+        if (!state.vsBasket.some(v => v.vendor_id === vendor.vendor_id)) {
+          if (state.vsBasket.length >= 3) state.vsBasket.pop();
+          state.vsBasket.push(vendor);
+          updateVSCountBadge();
+          renderTabB();
+        }
+        
+        setTimeout(() => {
+          const targetCard = Array.from(activeSlotsContainer.querySelectorAll('.yugioh-card.filled'))
+                               .find(el => el.dataset.vendorId == vendor.vendor_id || el.querySelector('.yugioh-vendor-name').innerText === vendor.vendor_name);
+          if (targetCard) {
+            handleCardClick(targetCard, vendor);
+          } else {
+            selectFinalVendor(vendor);
+          }
+        }, 100);
+      };
+    }
+
     const vendorModal = document.getElementById('vendor-modal');
     if (vendorModal) {
       vendorModal.classList.remove('hidden');
@@ -1378,6 +1531,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Init App Sync
   syncAuthUI();
 
-  // 강제 하드 리셋을 위한 정적 리스트 렌더링 호출
-  renderSearchResults();
+  // Pre-fetch default data for Tab A so it's ready immediately
+  doSearch('seoul').catch(() => {});
 });
