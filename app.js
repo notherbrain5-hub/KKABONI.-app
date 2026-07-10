@@ -520,32 +520,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- DETAILS POPUP MODAL LOGIC ---
   const openVendorModal = (vendor) => {
-    modalHeroImage.src = vendor.images[0] || 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
+    if (modalHeroImage) {
+      modalHeroImage.src = vendor.images[0] || 'https://images.unsplash.com/photo-1519225495810-7512c696505a?w=600&auto=format&fit=crop&q=60';
+    }
     
     // AI 메달 시스템 (9점 이상 🥇, 7점 이상 🥈, 그 외 🥉)
     const medal = vendor.safety_score >= 9 ? '🥇' : vendor.safety_score >= 7 ? '🥈' : '🥉';
-    modalTitle.innerText = `${medal} ${vendor.vendor_name}`;
+    if (modalTitle) {
+      modalTitle.innerText = `${medal} ${vendor.vendor_name}`;
+    }
     
     // Transparency Badge
-    modalTransparencyBadge.className = `transparency-badge ${vendor.transparency_class}`;
-    modalTransparencyBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
+    if (modalTransparencyBadge) {
+      modalTransparencyBadge.className = `transparency-badge ${vendor.transparency_class}`;
+      modalTransparencyBadge.innerText = `${vendor.transparency_label} (${vendor.safety_score}점)`;
+    }
     
-    modalReviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
-    modalReceiptTotal.innerText = formatCurrency(vendor.total_price);
+    if (modalReviewRating) modalReviewRating.innerText = `★ ${((vendor.safety_score / 2) + 0.5).toFixed(1)} / 5.0`;
+    if (modalReceiptTotal) modalReceiptTotal.innerText = formatCurrency(vendor.total_price);
     
     // VS Add Button state
-    const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
-    modalBtnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
-    modalBtnVs.onclick = () => {
-      const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
-      toggleVSBasket(vendor, btn || document.createElement('button'));
-      modalBtnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
-    };
+    if (modalBtnVs) {
+      const isSelected = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id);
+      modalBtnVs.innerText = isSelected ? '비교함 비우기' : '비교함에 담기';
+      modalBtnVs.onclick = () => {
+        const btn = document.querySelector(`.btn-vs-add[data-id="${vendor.vendor_id}"]`);
+        toggleVSBasket(vendor, btn || document.createElement('button'));
+        modalBtnVs.innerText = state.vsBasket.some(v => v.vendor_id === vendor.vendor_id) ? '비교함 비우기' : '비교함에 담기';
+      };
+    }
     
-    modalBtnChoice.onclick = () => {
-      selectFinalVendor(vendor);
-      vendorModal.classList.add('hidden');
-    };
+    if (modalBtnChoice) {
+      modalBtnChoice.onclick = () => {
+        selectFinalVendor(vendor);
+        vendorModal.classList.add('hidden');
+      };
+    }
     
     // 🔥 Killer Decision Button Logic (새로 추가된 하단 킬러 버튼)
     const killerBtn = document.getElementById('modal-killer-decision-btn');
@@ -596,47 +606,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Checklist
-    modalChecklist.innerHTML = '';
-    const hasS = vendor.ai_analysis.features.some(f => f.includes('스튜디오') || f.includes('컨셉'));
-    const hasD = vendor.ai_analysis.features.some(f => f.includes('드레스') || f.includes('실크'));
-    const hasM = vendor.ai_analysis.features.some(f => f.includes('메이크업') || f.includes('디렉팅') || f.includes('상담'));
-    
-    modalChecklist.innerHTML += `
-      <div class="checklist-item ${hasS ? 'included' : 'excluded'}">${hasS ? '✓' : '✗'} 스튜디오 촬영 포함</div>
-      <div class="checklist-item ${hasD ? 'included' : 'excluded'}">${hasD ? '✓' : '✗'} 헬퍼 이모님 피팅 포함</div>
-      <div class="checklist-item ${hasM ? 'included' : 'excluded'}">${hasM ? '✓' : '✗'} 헤어 & 메이크업 포함</div>
-      <div class="checklist-item excluded">✗ 턱시도/대여복 미포함</div>
-    `;
+    if (modalChecklist) {
+      modalChecklist.innerHTML = '';
+      const hasS = vendor.ai_analysis.features.some(f => f.includes('스튜디오') || f.includes('컨셉'));
+      const hasD = vendor.ai_analysis.features.some(f => f.includes('드레스') || f.includes('실크'));
+      const hasM = vendor.ai_analysis.features.some(f => f.includes('메이크업') || f.includes('디렉팅') || f.includes('상담'));
+      
+      modalChecklist.innerHTML += `
+        <div class="checklist-item ${hasS ? 'included' : 'excluded'}">${hasS ? '✓' : '✗'} 스튜디오 촬영 포함</div>
+        <div class="checklist-item ${hasD ? 'included' : 'excluded'}">${hasD ? '✓' : '✗'} 헬퍼 이모님 피팅 포함</div>
+        <div class="checklist-item ${hasM ? 'included' : 'excluded'}">${hasM ? '✓' : '✗'} 헤어 & 메이크업 포함</div>
+        <div class="checklist-item excluded">✗ 턱시도/대여복 미포함</div>
+      `;
+    }
     
     // Breakdown
-    modalBasePrice.innerText = formatCurrency(vendor.base_price);
-    modalReceiptItems.innerHTML = '';
-    vendor.hidden_costs.forEach(cost => {
-      const row = document.createElement('div');
-      row.className = 'breakdown-row';
-      const mark = cost.is_mandatory ? '(필수)' : '(선택)';
-      row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
-      modalReceiptItems.appendChild(row);
-    });
-    modalFinalTotal.innerText = formatCurrency(vendor.total_price);
+    if (modalBasePrice) modalBasePrice.innerText = formatCurrency(vendor.base_price);
+    if (modalReceiptItems) {
+      modalReceiptItems.innerHTML = '';
+      vendor.hidden_costs.forEach(cost => {
+        const row = document.createElement('div');
+        row.className = 'breakdown-row';
+        const mark = cost.is_mandatory ? '(필수)' : '(선택)';
+        row.innerHTML = `<span>+ ${cost.item_name} ${mark}</span><span>${formatCurrency(cost.average_cost)}</span>`;
+        modalReceiptItems.appendChild(row);
+      });
+    }
+    if (modalFinalTotal) modalFinalTotal.innerText = formatCurrency(vendor.total_price);
     
     // Hidden Cost Progress
-    modalHiddenCostsProgress.innerHTML = '';
-    vendor.hidden_costs.forEach(cost => {
-      const container = document.createElement('div');
-      container.className = 'progress-container';
-      const occurrence = cost.occurrence || Math.floor(Math.random() * 50) + 50;
-      container.innerHTML = `
-        <div class="progress-label-wrap">
-          <span>${cost.item_name}</span>
-          <span>발생률 ${occurrence}% (${formatCurrency(cost.average_cost)})</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: ${occurrence}%"></div>
-        </div>
-      `;
-      modalHiddenCostsProgress.appendChild(container);
-    });
+    if (modalHiddenCostsProgress) {
+      modalHiddenCostsProgress.innerHTML = '';
+      vendor.hidden_costs.forEach(cost => {
+        const container = document.createElement('div');
+        container.className = 'progress-container';
+        const occurrence = cost.occurrence || Math.floor(Math.random() * 50) + 50;
+        container.innerHTML = `
+          <div class="progress-label-wrap">
+            <span>${cost.item_name}</span>
+            <span>발생률 ${occurrence}% (${formatCurrency(cost.average_cost)})</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${occurrence}%"></div>
+          </div>
+        `;
+        modalHiddenCostsProgress.appendChild(container);
+      });
+    }
     
     // AI Insight & [추가금 발생 사유] Alert Box
     const hiddenTotal = vendor.hidden_costs.reduce((acc, c) => acc + c.average_cost, 0);
@@ -668,13 +684,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const topCost = vendor.hidden_costs.reduce((prev, current) => (prev.average_cost > current.average_cost) ? prev : current);
       const reasonText = `이 업체는 기본 견적가 대비 총 ${formatCurrency(hiddenTotal)}의 추가 비용이 발생합니다. 주요 원인은 [${topCost.item_name}]의 필수 추가 옵션 유도 및 배송/진행 추가 경비입니다.`;
       
-      modalInflationReason.innerText = `[가격 경고] ${reasonText}`;
+      if (modalInflationReason) modalInflationReason.innerText = `[가격 경고] ${reasonText}`;
       if (modalWarningBox && modalWarningReason) {
         modalWarningReason.innerText = reasonText;
         modalWarningBox.style.display = 'block';
       }
     } else {
-      modalInflationReason.innerText = "이 업체는 숨겨진 추가금이 전혀 없거나 매우 낮은 수준의 아주 투명하고 정직한 견적의 업체입니다.";
+      if (modalInflationReason) modalInflationReason.innerText = "이 업체는 숨겨진 추가금이 전혀 없거나 매우 낮은 수준의 아주 투명하고 정직한 견적의 업체입니다.";
       if (modalWarningBox && modalWarningReason) {
         modalWarningReason.innerText = "이 업체는 약관 위반 및 숨겨진 과도한 비용이 발견되지 않은 안심 투명 업체입니다.";
         modalWarningBox.style.display = 'block';
