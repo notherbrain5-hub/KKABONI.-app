@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Toast Notification -->
@@ -565,6 +566,12 @@
           <div id="modal-receipt-items" style="margin-bottom: 15px;">
             <!-- Hidden costs items injected here -->
           </div>
+          
+          <!-- 레이더 차트 컨테이너 추가 (실제 예상 총액 바로 위) -->
+          <div style="margin: 15px 0; display: flex; justify-content: center; align-items: center;">
+             <canvas id="modal-radar-chart" width="220" height="220" style="max-width: 220px; max-height: 220px;"></canvas>
+          </div>
+          
           <div class="breakdown-row total receipt-total" style="display: flex; flex-direction: column; align-items: stretch; margin-top: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; background: #1E293B; padding: 16px; border-radius: 8px;">
               <span style="color: white; font-size: 16px; font-weight: 700;">실제 예상 총액</span>
