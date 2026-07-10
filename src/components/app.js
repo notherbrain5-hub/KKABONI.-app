@@ -554,6 +554,38 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
       vendorModal.classList.add('hidden');
     };
     
+    // 🔥 Killer Decision Button Logic (새로 추가된 하단 킬러 버튼)
+    const killerBtn = document.getElementById('modal-killer-decision-btn');
+    if (killerBtn) {
+      killerBtn.onclick = () => {
+        // 1. 팝업 모달 즉시 닫기
+        vendorModal.classList.add('hidden');
+        
+        // 2. 맞짱 까보자 탭(Tab B)으로 화면 전환
+        switchTab('tab-b');
+        
+        // 3. 만약 3대장 슬롯에 없는 업체라면 임시로 넣어주기
+        if (!state.vsBasket.some(v => v.vendor_id === vendor.vendor_id)) {
+          if (state.vsBasket.length >= 3) state.vsBasket.pop();
+          state.vsBasket.push(vendor);
+          updateVSCountBadge();
+          renderTabB();
+        }
+        
+        // 4. DOM 업데이트 대기 후 킬러 애니메이션(handleCardClick) 강제 발동
+        setTimeout(() => {
+          const targetCard = Array.from(activeSlotsContainer.querySelectorAll('.yugioh-card.filled'))
+                               .find(el => el.dataset.vendorId == vendor.vendor_id);
+          if (targetCard) {
+            handleCardClick(targetCard, vendor);
+          } else {
+            // Fallback
+            selectFinalVendor(vendor);
+          }
+        }, 100);
+      };
+    }
+    
     // Checklist
     modalChecklist.innerHTML = '';
     const hasS = vendor.ai_analysis.features.some(f => f.includes('스튜디오') || f.includes('컨셉'));
@@ -821,11 +853,13 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
     
     // FIFA / Pokemon Style Card Render Logic
     activeSlotsContainer.innerHTML = '';
+    const slotElements = [];
     
     state.vsBasket.forEach((v, i) => {
       const slotDiv = document.createElement('div');
       slotDiv.className = `yugioh-card filled ${v.transparency_class}`;
       slotDiv.style.backgroundImage = `url('${v.images[0]}')`;
+      slotDiv.dataset.vendorId = v.vendor_id; // 애니메이션 탐색용 ID 추가
       
       slotDiv.innerHTML = `
         <div class="yugioh-card-inner" style="height: 100%; display: flex; flex-direction: column;">
@@ -860,7 +894,6 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
               <div>💡 <strong>특이사항:</strong> ${v.ai_analysis.notes[0] || '추가 지출 안전성 높음'}</div>
             </div>
           </div>
-          <button class="select-vendor-btn" style="width: 100%; padding: 12px; border-radius: 10px; font-weight:900; font-size:14px; border: none; background: linear-gradient(135deg, #FACC15 0%, #D97706 100%); color: #000; cursor: pointer; margin-bottom: 6px; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);">이 업체로 결정!</button>
           <button class="btn-secondary remove-slot-btn" style="width: 100%; padding: 8px; border-radius: 10px; font-weight:700; font-size:12px; border: none; background: rgba(255,255,255,0.2); color: white; cursor: pointer;" data-idx="${i}">슬롯 비우기</button>
         </div>
       `;
@@ -885,13 +918,9 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
 
       radarWrap.appendChild(radarSvg);
 
-      // Card Selection Click Handler
+      // Card Selection Click Handler (모달창 오픈으로만 역할 제한)
       slotDiv.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-slot-btn')) return;
-        if (e.target.classList.contains('select-vendor-btn')) {
-          handleCardClick(slotDiv, v);
-          return;
-        }
         // 카드 본체 클릭 시 모달창 오픈 (디테일 뷰)
         openVendorModal(v);
       });
@@ -907,7 +936,8 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
         updateVSCountBadge();
         renderTabB();
       });
-      activeSlotsContainer.appendChild(slotDiv);
+      
+      slotElements.push(slotDiv);
     });
     
     // Fill remaining empty slots up to 3
@@ -922,8 +952,19 @@ import { fetchSdmData, parseSdmHiddenCosts } from '../crawlers/sdmCrawler.js';
           <p style="font-size:12px; color:var(--text-secondary); text-align:center; margin-top:10px;">'견적 까보자!' 탭에서 업체를 담아주세요.</p>
         </div>
       `;
-      activeSlotsContainer.appendChild(emptyDiv);
+      slotElements.push(emptyDiv);
     }
+    
+    // 최종 렌더링 (슬롯과 VS 마크 교차 배치)
+    slotElements.forEach((el, index) => {
+      activeSlotsContainer.appendChild(el);
+      if (index < slotElements.length - 1) {
+        const vsMark = document.createElement('div');
+        vsMark.className = 'vs-divider';
+        vsMark.innerHTML = 'VS';
+        activeSlotsContainer.appendChild(vsMark);
+      }
+    });
 
     // AI Advice Panel Trigger (Only when all 3 slots are filled)
     if (state.vsBasket.length === 3) {
